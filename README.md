@@ -7,8 +7,16 @@ SQLite Tools really shines when used in combination with JSON Tools: https://git
 Simply put:
 
 ```
-JSON string ----> struct ----> SQLite
-              ↑            ↑
-          JSON Tools  SQLite Tools
+JSON string   ---->   struct   ---->   SQLite
+                ↑                ↑
+           JT::parseTo()    SQLT::insert()
+```
+
+The reverse is of course also possible:
+
+```
+JSON string   <----   struct   <----   SQLite
+                ↑                ↑
+      JT::serializeStruct()  SQLT::select()
 ```
 
