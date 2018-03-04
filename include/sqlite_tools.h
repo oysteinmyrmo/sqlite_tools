@@ -1014,6 +1014,12 @@ namespace SQLT
         return result;
     }
 
+    template<typename SQLT_TABLE>
+    inline int insert(sqlite3 *db, const SQLT_TABLE& row)
+    {
+        return SQLT::insert(db, std::vector<SQLT_TABLE>({row}));
+    }
+
     template<typename DB_STRUCT, typename SQLT_TABLE>
     inline int insert(const std::vector<SQLT_TABLE>& rows)
     {
@@ -1036,6 +1042,12 @@ namespace SQLT
         }
 
         return sqlite3_close(db);
+    }
+
+    template<typename DB_STRUCT, typename SQLT_TABLE>
+    inline int insert(const SQLT_TABLE& row)
+    {
+        return SQLT::insert<DB_STRUCT, SQLT_TABLE>(std::vector<SQLT_TABLE>({row}));
     }
 
     template<typename SQLT_TABLE>
