@@ -51,7 +51,7 @@ int main()
         return 1;
     }
 
-    // Execute "CREATE TABLE x(...)" for each defined SQLT_DATABASE_TABLE in the database.
+    // Execute "CREATE TABLE IF NOT EXISTS x(...);" for each defined SQLT_DATABASE_TABLE in the database. All data types are inserted as in the statically defined tables.
     result = SQLT::createAllTables<Database>(&errMsg);
     if (result != SQLITE_OK)
     {
