@@ -1,12 +1,9 @@
-# SQLite Tools
+#include <sqlite3/sqlite3.h>
+#include <sqlite_tools.h>
+#include <string>
+#include <vector>
+#include <cstdio>
 
-SQLite Tools is a single header only C++11 library to create SQLite databases and insert from and select back to C++ structs. The tests are showcasing more functionality than this README does.
-
-## Introduction
-
-Since code speaks better than words, here is a simple example that statically defines an SQLite database with one table having four columns. This example is show the same as the test named `readme-test1`.
-
-```c++
 // Statically define the database with a single table.
 struct Database
 {
@@ -78,26 +75,3 @@ int main()
 
     return 0;
 }
-
-```
-
-## SQLite Tools with JSON Tools
-
-SQLite Tools really shines when used in combination with JSON Tools: https://github.com/jorgen/json_tools JSON Tools can parse JSON strings into the same structs that SQLite Tools uses to insert data into SQLite.
-
-Simply put:
-
-```
-JSON string   ---->   struct   ---->   SQLite
-                ↑                ↑
-           JT::parseTo()    SQLT::insert()
-```
-
-The reverse is of course also possible:
-
-```
-JSON string   <----   struct   <----   SQLite
-                ↑                ↑
-      JT::serializeStruct()  SQLT::select()
-```
-
