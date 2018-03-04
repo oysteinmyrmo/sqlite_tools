@@ -211,6 +211,20 @@ namespace SQLT
     template <typename T>
     struct Nullable
     {
+        Nullable()
+            : is_null(true)
+        {}
+
+        Nullable(const T& value)
+            : value(value)
+            , is_null(false)
+        {}
+
+        Nullable(const T& val, bool is_null)
+            : value(value)
+            , is_null(is_null)
+        {}
+
         T value;
         bool is_null;
     };
