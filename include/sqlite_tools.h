@@ -19,7 +19,9 @@
  * SOFTWARE.
  */
 #pragma once
-#include <assert.h>
+#include <cassert>
+#include <string>
+#include <vector>
 
 #if !defined(SQLITE_OK)
     static_assert(false, "sqlite3.h must be included when using SQLT.");
