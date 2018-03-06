@@ -1,9 +1,9 @@
-#include <sqlite3/sqlite3.h>
 #include <string>
 #include <vector>
 #include <cstdio>
 
 // Note: The SQLITE_TOOLS_USE_JSON_TOOLS define is required to properly parse SQLite Tools types using JSON Tools.
+#include <sqlite3/sqlite3.h>
 #define SQLITE_TOOLS_USE_JSON_TOOLS
 #include <json_tools/json_tools.h>
 #include <sqlite_tools.h>
@@ -107,7 +107,7 @@ int main()
         return 4;
     }
 
-    // Parse the data selected from SQLite back to JSON using JSON Tools. This JSON string is identical to the jsonData string above (i.e. the JSON is identical).
+    // Serialize the data selected from SQLite back to JSON using JSON Tools. This JSON string is identical to the jsonData string above (i.e. the JSON is identical).
     std::string jsonSelected = JT::serializeStruct(selected);
 
     return 0;

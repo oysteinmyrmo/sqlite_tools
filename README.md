@@ -7,6 +7,9 @@ SQLite Tools is a single header only C++11 library to create SQLite databases an
 Since code speaks better than words, here is a simple example that statically defines an SQLite database with one table having four columns. This example is show the same as the test named `readme-test1`.
 
 ```c++
+#include <sqlite3/sqlite3.h>
+#include <sqlite_tools.h>
+
 // Statically define the database with a single table.
 struct Database
 {
@@ -34,7 +37,7 @@ struct Database
 int main()
 {
     // Create some data to insert.
-    std::vector<Database::SomeTable> data({
+    std::vector<Database::SomeTable> rows({
         { 1, "name1", 1.0, { "desc1"  }},
         { 2, "name2", 2.0, { /*NULL*/ }},
         { 3, "name3", 3.0, { "desc3"  }}
@@ -60,25 +63,24 @@ int main()
     }
 
     // Insert all rows in the data vector.
-    result = SQLT::insert<Database>(data);
+    result = SQLT::insert<Database>(rows);
     if (result != SQLITE_OK)
     {
-        fprintf(stderr, "Error while inserting data: %d", result);
+        fprintf(stderr, "Error while inserting rows: %d", result);
         return 3;
     }
 
     // Select the data back from the database.
     std::vector<Database::SomeTable> selected;
     result = SQLT::selectAll<Database>(&selected);
-    if ((result != SQLITE_OK) || (selected.size() != data.size()))
+    if ((result != SQLITE_OK) || (selected.size() != rows.size()))
     {
-        fprintf(stderr, "Error while selecting data. SQLite code: %d, data size: %zu, selected size: %zu", result, data.size(), selected.size());
+        fprintf(stderr, "Error while selecting rows. SQLite code: %d, rows size: %zu, selected size: %zu", result, rows.size(), selected.size());
         return 4;
     }
 
     return 0;
 }
-
 ```
 
 ## SQLite Tools with JSON Tools
@@ -105,6 +107,7 @@ Here is a sample similar to the one above, except now we parse a JSON string to 
 
 ```c++
 // Note: The SQLITE_TOOLS_USE_JSON_TOOLS define is required to properly parse SQLite Tools types using JSON Tools.
+#include <sqlite3/sqlite3.h>
 #define SQLITE_TOOLS_USE_JSON_TOOLS
 #include <json_tools/json_tools.h>
 #include <sqlite_tools.h>
