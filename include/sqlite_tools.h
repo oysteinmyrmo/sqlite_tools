@@ -1294,7 +1294,17 @@ namespace JT
         }
 
         static inline void serializeToken(const SQLT::Nullable<T> nullable, Token &token, Serializer &serializer)
-        {}
+        {
+            if (nullable.is_null)
+            {
+                token.value_type = JT::Type::Null;
+                serializer.write(token);
+            }
+            else
+            {
+                JT::TypeHandler<T>::serializeToken(nullable.value, token, serializer);
+            }
+        }
     };
 }
 #endif
