@@ -534,6 +534,7 @@ public:
     NeedMoreDataCBRef registerNeedMoreDataCallback(std::function<void(Tokenizer &)> callback);
     ReleaseCBRef registerReleaseCallback(std::function<void(const char *)> &callback);
     Error nextToken(Token &next_token);
+    const char *currentPosition() const;
 
     void copyFromValue(const Token &token, std::string &to_buffer);
     void copyIncludingValue(const Token &token, std::string &to_buffer);
@@ -831,6 +832,17 @@ inline Error Tokenizer::nextToken(Token &next_token)
     return error;
 }
 
+inline const char *Tokenizer::currentPosition() const
+{
+    if (parsed_data_vector)
+        return reinterpret_cast<const char *>(cursor_index);
+
+    if (data_list.empty())
+        return nullptr;
+
+    return data_list.front().data + cursor_index;
+}
+
 static bool isValueInIntermediateToken(const Token &token, const Internal::IntermediateToken &intermediate)
 {
     if (intermediate.data.size())
@@ -1126,6 +1138,8 @@ inline Error Tokenizer::findStartOfNextValue(Type *type,
 
 inline Error Tokenizer::findDelimiter(const DataRef &json_data, size_t *chars_ahead)
 {
+    if (container_stack.empty())
+        return Error::IllegalPropertyType;
     for (size_t end = cursor_index; end < json_data.size; end++) {
         const char c = json_data.data[end];
         if (c == ':') {
@@ -1155,6 +1169,8 @@ inline Error Tokenizer::findDelimiter(const DataRef &json_data, size_t *chars_ah
 
 inline Error Tokenizer::findTokenEnd(const DataRef &json_data, size_t *chars_ahead)
 {
+    if (container_stack.empty())
+        return Error::NoError;
     for (size_t end = cursor_index; end < json_data.size; end++) {
         const char c = json_data.data[end];
         if (c == ',') {
@@ -1727,6 +1743,9 @@ inline bool Serializer::write(Type type, const DataRef &data)
             else
                 written = write(data.data,data.size);
             break;
+        case Type::Null:
+            written = write("null", 4);
+            break;
         default:
             written = write(data.data,data.size);
             break;
@@ -1937,18 +1956,21 @@ struct OptionalChecked
 struct SilentString
 {
     std::string data;
+    typedef bool IsOptionalType;
 };
 
 template<typename T, typename A = std::allocator<T>>
 struct SilentVector
 {
     std::vector<T, A> data;
+    typedef bool IsOptionalType;
 };
 
 template<typename T, typename Deleter = std::default_delete<T>>
 struct SilentUniquePtr
 {
     std::unique_ptr<T, Deleter> data;
+    typedef bool IsOptionalType;
 };
 
 struct JsonObjectRef
@@ -2534,7 +2556,7 @@ namespace Internal {
         }
     };
 
-    static void skipArrayOrObject(ParseContext &context)
+    static bool skipArrayOrObject(ParseContext &context)
     {
         assert(context.error == Error::NoError);
         Type end_type;
@@ -2545,26 +2567,24 @@ namespace Internal {
             end_type = Type::ArrayEnd;
         }
         else {
-            return;
+            return false;
         }
 
-        bool nested_object_or_array = false;
-        while ((context.error == Error::NoError && context.token.value_type != end_type)
-               || nested_object_or_array) {
-            nested_object_or_array = false;
+        while ((context.error == Error::NoError && context.token.value_type != end_type))
+        {
             context.nextToken();
             if (context.error != Error::NoError)
-                return;
+                return false;
             if (context.token.value_type == Type::ObjectStart
                 || context.token.value_type == Type::ArrayStart) {
-                skipArrayOrObject(context);
+                if (skipArrayOrObject(context))
+                    context.nextToken();
                 if (context.error != Error::NoError)
-                    return;
-                if (end_type == context.token.value_type) {
-                    nested_object_or_array = true;
-                }
+                    return false;
             }
         }
+
+        return true;
     }
 }
 
@@ -4212,9 +4232,19 @@ struct TypeHandler<JsonArray>
 
     static inline void serializeToken(const JsonArray &from_type, Token &token, Serializer &serializer)
     {
-        token.value = DataRef(from_type.data);
         token.value_type = JT::Type::Null; //Need to fool the serializer to just write value as verbatim
-        serializer.write(token);
+
+        if (from_type.data.empty())
+        {
+            std::string emptyArray("[]");
+            token.value = DataRef(emptyArray);
+            serializer.write(token);
+        }
+        else
+        {
+            token.value = DataRef(from_type.data);
+            serializer.write(token);
+        }
     }
 };
 
@@ -4286,9 +4316,19 @@ struct TypeHandler<JsonObject>
 
     static inline void serializeToken(const JsonObject &from_type, Token &token, Serializer &serializer)
     {
-        token.value = DataRef(from_type.data);
         token.value_type = JT::Type::Null; //Need to fool the serializer to just write value as verbatim
-        serializer.write(token);
+
+        if (from_type.data.empty())
+        {
+            std::string emptyObject("{}");
+            token.value = DataRef(emptyObject);
+            serializer.write(token);
+        }
+        else
+        {
+            token.value = DataRef(from_type.data);
+            serializer.write(token);
+        }
     }
 };
 
@@ -4387,9 +4427,19 @@ struct TypeHandler<JsonObjectOrArray>
 
     static inline void serializeToken(const JsonObjectOrArray &from_type, Token &token, Serializer &serializer)
     {
-        token.value = DataRef(from_type.data);
         token.value_type = JT::Type::Null; //Need to fool the serializer to just write value as verbatim
-        serializer.write(token);
+
+        if (from_type.data.empty())
+        {
+            std::string emptyObjectOrArray("{}"); // Use object as default
+            token.value = DataRef(emptyObjectOrArray);
+            serializer.write(token);
+        }
+        else
+        {
+            token.value = DataRef(from_type.data);
+            serializer.write(token);
+        }
     }
 };
 
