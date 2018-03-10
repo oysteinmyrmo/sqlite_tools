@@ -104,9 +104,9 @@ struct AllTypes
 
 int main()
 {
-    SQLT_ASSERT(SQLT::primaryKeyCount<AllTypes>() == 4);
+    SQLT_ASSERT(SQLT::Internal::primaryKeyCount<AllTypes>() == 4);
     SQLT_ASSERT(SQLT::tableName<AllTypes>() == "AllTypes");
-    SQLT_ASSERT(SQLT::columnCount<AllTypes>() == 12);
+    SQLT_ASSERT(SQLT::Internal::columnCount<AllTypes>() == 12);
 
     sqlite3 *db;
     int rc;
