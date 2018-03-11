@@ -230,11 +230,11 @@ int main()
 
     char* errMsg;
     int result;
-    
+
     // 1. Drop all existing tables to clear the data
     result = SQLT::dropAllTables<recipes_db>(&errMsg);
     SQLT_ASSERT(result == SQLITE_OK);
-    
+
     // 2. Create all tables
     result = SQLT::createAllTables<recipes_db>(&errMsg);
     SQLT_ASSERT(result == SQLITE_OK);

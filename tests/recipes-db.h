@@ -14,7 +14,7 @@ struct recipes_db
         std::string portions_unit;
         SQLT::Nullable<std::string> description;
         SQLT::Nullable<int> favorite;
-        
+
         JT_STRUCT(
             JT_MEMBER(id),
             JT_MEMBER(name),
@@ -35,12 +35,12 @@ struct recipes_db
             SQLT_COLUMN_DEFAULT(favorite, 0)
         );
     };
-    
+
     struct ingredient_in_recipe
     {
         int recipe_id;
         int ingredient_id;
-        
+
         JT_STRUCT(
             JT_MEMBER(recipe_id),
             JT_MEMBER(ingredient_id)
@@ -51,7 +51,7 @@ struct recipes_db
             SQLT_COLUMN_PRIMARY_KEY(ingredient_id)
         );
     };
-    
+
     struct ingredients
     {
         int id;
@@ -76,7 +76,7 @@ struct recipes_db
             SQLT_COLUMN(vegan)
         );
     };
-    
+
     struct allergen_in_ingredient
     {
         int allergen_id;
@@ -92,7 +92,7 @@ struct recipes_db
             SQLT_COLUMN_PRIMARY_KEY(ingredient_id)
         );
     };
-    
+
     struct allergens
     {
         int id;
@@ -137,4 +137,3 @@ struct recipes_db
         );
     };
 };
-

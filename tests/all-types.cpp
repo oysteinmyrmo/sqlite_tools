@@ -58,19 +58,19 @@ struct AllTypes
     int id;
     double num;
     std::string name;
-    
+
     int id2;
     double num2;
     std::string name2;
-    
+
     SQLT::Nullable<int> id3;
     SQLT::Nullable<double> num3;
     SQLT::Nullable<std::string> name3;
-    
+
     SQLT::Nullable<int> id4;
     SQLT::Nullable<double> num4;
     SQLT::Nullable<std::string> name4;
-    
+
     JT_STRUCT(
         JT_MEMBER(id),
         JT_MEMBER(num),
@@ -85,7 +85,7 @@ struct AllTypes
         JT_MEMBER(num4),
         JT_MEMBER(name4)
     );
-    
+
     SQLT_TABLE(AllTypes,                                                // Table name = "AllTypes"
         SQLT_COLUMN_FLAGS(id, SQLT::Flags::PRIMARY_KEY),                // id INTEGER NOT NULL PRIMARY KEY
         SQLT_COLUMN(num),                                               // num REAL NOT NULL
@@ -114,7 +114,7 @@ int main()
 
     rc = sqlite3_open("alltypes", &db);
     SQLT_ASSERT(rc == SQLITE_OK);
-    
+
     if (rc)
     {
         fprintf(stderr, "Cannot open db!");
@@ -123,10 +123,10 @@ int main()
     {
         rc = SQLT::dropTableIfExists<AllTypes>(db, &zErrMsg);
         SQLT_ASSERT(rc == SQLITE_OK);
-        
+
         rc = SQLT::createTableIfNotExists<AllTypes>(db, &zErrMsg);
         SQLT_ASSERT(rc == SQLITE_OK);
-        
+
         if (rc == SQLITE_OK)
         {
             std::vector<AllTypes> data;
@@ -141,7 +141,7 @@ int main()
             rc = SQLT::selectAll(db, &rows);
             SQLT_ASSERT(rc == SQLITE_OK);
             SQLT_ASSERT(rows.size() == 3);
-            
+
             auto &row = rows[0];
             SQLT_ASSERT(row.id == 11);
             SQLT_FUZZY_ASSERT(row.num, 1.1);
@@ -157,7 +157,7 @@ int main()
             SQLT_ASSERT(row.num4.is_null == false);
             SQLT_FUZZY_ASSERT(row.num4.value, 1.4);
             SQLT_ASSERT((row.name4.value == "first4") && (row.name4.is_null == false));
-            
+
             row = rows[1];
             SQLT_ASSERT(row.id == 21);
             SQLT_FUZZY_ASSERT(row.num, 2.1);
@@ -173,7 +173,7 @@ int main()
             SQLT_ASSERT(row.num4.is_null == false);
             SQLT_FUZZY_ASSERT(row.num4.value, 2.4);
             SQLT_ASSERT((row.name4.value == "second4") && (row.name4.is_null == false));
-            
+
             row = rows[2];
             SQLT_ASSERT(row.id == 31);
             SQLT_FUZZY_ASSERT(row.num, 3.1);

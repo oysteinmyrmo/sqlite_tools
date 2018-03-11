@@ -70,7 +70,7 @@ int main()
     std::vector<Database::SomeTable> rows;
     parseContext.parseTo(rows);
     assert(parseContext.error == JT::Error::NoError);
-    
+
     char* errMsg;
     int result;
 
