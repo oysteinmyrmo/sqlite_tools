@@ -947,9 +947,9 @@ namespace SQLT
         template<typename T, typename U, typename SQLT_TABLE>
         struct SQLiteMemberAssigner
         {
-            static inline int assignMember(sqlite3_stmt *stmt, int index, SQLT_TABLE& row, T U::* memberPtr)
+            static inline void assignMember(sqlite3_stmt *stmt, int index, SQLT_TABLE& row, T U::* memberPtr)
             {
-                return SQLITE_ERROR;
+                assert(false); // T is not a type that SQLite Tools can use. Must be int, double or std::string
             }
         };
 
