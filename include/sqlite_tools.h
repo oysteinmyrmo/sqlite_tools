@@ -225,7 +225,13 @@ namespace SQLT
         typedef ColName DatabasePath;
     }
 
-    // TODO: Write docs.
+    /**
+     * A Nullable type can insert and select NULL values from the database.
+     *
+     * The Nullable data type can be used for columns that are not marked as "NOT NULL". Columns that use primitive data
+     * types like int (INTEGER), double (REAL) or std::string (TEXT) are implicitly marked as "NOT NULL". If you need NULL
+     * values for a column, use this type.
+     */
     template <typename T>
     struct Nullable
     {
