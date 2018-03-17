@@ -74,5 +74,14 @@ int main()
         return 4;
     }
 
+    // Select a single row from the database (i.e. "SELECT name FROM SomeTable;").
+    std::vector<decltype(Database::SomeTable::name)> names;
+    result = SQLT::select<Database>(&Database::SomeTable::name, &names);
+    if ((result != SQLITE_OK) || (names.size() != rows.size()))
+    {
+        fprintf(stderr, "Error while selecting names. SQLite code: %d, rows size: %zu, names size: %zu", result, rows.size(), names.size());
+        return 5;
+    }
+
     return 0;
 }

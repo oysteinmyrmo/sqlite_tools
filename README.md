@@ -79,6 +79,15 @@ int main()
         return 4;
     }
 
+    // Select a single row from the database (i.e. "SELECT name FROM SomeTable;").
+    std::vector<decltype(Database::SomeTable::name)> names;
+    result = SQLT::select<Database>(&Database::SomeTable::name, &names);
+    if ((result != SQLITE_OK) || (names.size() != rows.size()))
+    {
+        fprintf(stderr, "Error while selecting names. SQLite code: %d, rows size: %zu, names size: %zu", result, rows.size(), names.size());
+        return 5;
+    }
+
     return 0;
 }
 ```
@@ -174,7 +183,7 @@ int main()
     std::vector<Database::SomeTable> rows;
     parseContext.parseTo(rows);
     assert(parseContext.error == JT::Error::NoError);
-    
+
     char* errMsg;
     int result;
 
@@ -209,6 +218,24 @@ int main()
     {
         fprintf(stderr, "Error while selecting rows. SQLite code: %d, rows size: %zu, selected size: %zu", result, rows.size(), selected.size());
         return 4;
+    }
+
+    // Select a single row from the database (i.e. "SELECT name FROM SomeTable;").
+    std::vector<decltype(Database::SomeTable::name)> names;
+    result = SQLT::select<Database>(&Database::SomeTable::name, &names);
+    if ((result != SQLITE_OK) || (names.size() != rows.size()))
+    {
+        fprintf(stderr, "Error while selecting names. SQLite code: %d, rows size: %zu, names size: %zu", result, rows.size(), names.size());
+        return 5;
+    }
+
+    // Select a single row from the database (i.e. "SELECT name FROM SomeTable;").
+    std::vector<decltype(Database::SomeTable::description)> descriptions;
+    result = SQLT::select<Database>(&Database::SomeTable::description, &descriptions);
+    if ((result != SQLITE_OK) || (descriptions.size() != rows.size()))
+    {
+        fprintf(stderr, "Error while selecting descriptions. SQLite code: %d, rows size: %zu, descriptions size: %zu", result, rows.size(), descriptions.size());
+        return 6;
     }
 
     // Serialize the data selected from SQLite back to JSON using JSON Tools. This JSON string is identical to the jsonData string above (i.e. the JSON is identical).
