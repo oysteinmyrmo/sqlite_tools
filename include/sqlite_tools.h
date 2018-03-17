@@ -685,10 +685,10 @@ namespace SQLT
             }
         };
 
-        template<typename COL_TUPLE>
+        template<typename SQLT_TABLE>
         inline size_t primaryKeyCount()
         {
-            auto columns = COL_TUPLE::template SQLTBase<COL_TUPLE>::sqlt_static_column_info();
+            auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
             return ColumnTraverser_PrimaryKeyCount<decltype(columns)::size - 1, decltype(columns)>::traverse(columns);
         }
 
@@ -726,16 +726,16 @@ namespace SQLT
             }
         };
 
-        template<typename COL_TUPLE>
+        template<typename SQLT_TABLE>
         inline std::string createPrimaryKeyStatement()
         {
             std::string statement("");
-            size_t pkCount = primaryKeyCount<COL_TUPLE>();
+            size_t pkCount = primaryKeyCount<SQLT_TABLE>();
             if (pkCount > 0)
             {
                 statement += "PRIMARY KEY(";
                 size_t usedPks = 0;
-                auto columns = COL_TUPLE::template SQLTBase<COL_TUPLE>::sqlt_static_column_info();
+                auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
                 ColumnTraverser_CreateTablePrimaryKeys<0, decltype(columns)::size - 1, decltype(columns)>::traverse(columns, statement, pkCount, usedPks);
                 statement += ")";
             }
@@ -1310,7 +1310,7 @@ namespace SQLT
     /**
      * Insert rows into a table.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @tparam SQLT_TABLE An SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME.
      * @param rows The rows to insert into the database.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully inserted.
@@ -1319,12 +1319,12 @@ namespace SQLT
      * @see SQLT::insert(sqlite3 *db, const SQLT_TABLE& row)
      * @see SQLT::insert(const SQLT_TABLE& row)
      */
-    template<typename DB_STRUCT, typename SQLT_TABLE>
+    template<typename SQLT_DB, typename SQLT_TABLE>
     inline int insert(const std::vector<SQLT_TABLE>& rows)
     {
         int result;
         sqlite3 *db;
-        auto dbInfo = DB_STRUCT::template SQLTDatabase<DB_STRUCT>::sqlt_static_database_info();
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
         result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
         if (result != SQLITE_OK)
@@ -1346,7 +1346,7 @@ namespace SQLT
     /**
      * Insert a single row into a table.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @tparam SQLT_TABLE An SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME.
      * @param row The row to insert into the database.
      * @return The SQLite error code. Will be SQLITE_OK if the row was successfully inserted.
@@ -1355,10 +1355,10 @@ namespace SQLT
      * @see SQLT::insert(sqlite3 *db, const SQLT_TABLE& row)
      * @see SQLT::insert(const std::vector<SQLT_TABLE>& rows)
      */
-    template<typename DB_STRUCT, typename SQLT_TABLE>
+    template<typename SQLT_DB, typename SQLT_TABLE>
     inline int insert(const SQLT_TABLE& row)
     {
-        return SQLT::insert<DB_STRUCT, SQLT_TABLE>(std::vector<SQLT_TABLE>({row}));
+        return SQLT::insert<SQLT_DB, SQLT_TABLE>(std::vector<SQLT_TABLE>({row}));
     }
 
     /**
@@ -1655,35 +1655,35 @@ namespace SQLT
     /**
      * Create all tables in a database if they do not exist.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @param db The sqlite3 instance to create the tables in.
      * @param errMsg The sqlite3 message output.
      * @return The SQLite error code. Will be SQLITE_OK if the tables were successfully created.
      *
      * @see SQLT::createAllTables(char **errMsg)
      */
-    template<typename DB_STRUCT>
+    template<typename SQLT_DB>
     inline int createAllTables(sqlite3 *db, char **errMsg)
     {
-        auto tables = DB_STRUCT::template SQLTDatabase<DB_STRUCT>::sqlt_static_table_info();
+        auto tables = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_table_info();
         return SQLT::Internal::SQLiteTableTraverser<0, decltype(tables)::size - 1, decltype(tables)>::iterateAndCreateTables(tables, db, errMsg);
     }
 
     /**
      * Create all tables in a database if they do not exist.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @param errMsg The sqlite3 message output.
      * @return The SQLite error code. Will be SQLITE_OK if the tables were successfully created.
      *
      * @see SQLT::createAllTables(sqlite3 *db, char **errMsg)
      */
-    template<typename DB_STRUCT>
+    template<typename SQLT_DB>
     inline int createAllTables(char **errMsg)
     {
         int result;
         sqlite3 *db;
-        auto dbInfo = DB_STRUCT::template SQLTDatabase<DB_STRUCT>::sqlt_static_database_info();
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
         result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
         if (result != SQLITE_OK)
@@ -1692,7 +1692,7 @@ namespace SQLT
             return result;
         }
 
-        result = SQLT::createAllTables<DB_STRUCT>(db, errMsg);
+        result = SQLT::createAllTables<SQLT_DB>(db, errMsg);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1705,35 +1705,35 @@ namespace SQLT
     /**
      * Drop all tables in a database.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @param db The sqlite3 instance to drop the tables in.
      * @param errMsg The sqlite3 message output.
      * @return The SQLite error code. Will be SQLITE_OK if the tables were successfully dropped.
      *
      * @see SQLT::dropAllTables(char **errMsg)
      */
-    template<typename DB_STRUCT>
+    template<typename SQLT_DB>
     inline int dropAllTables(sqlite3 *db, char **errMsg)
     {
-        auto tables = DB_STRUCT::template SQLTDatabase<DB_STRUCT>::sqlt_static_table_info();
+        auto tables = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_table_info();
         return SQLT::Internal::SQLiteTableTraverser<0, decltype(tables)::size - 1, decltype(tables)>::iterateAndDropTables(tables, db, errMsg);
     }
 
     /**
      * Drop all tables in a database.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @param errMsg The sqlite3 message output.
      * @return The SQLite error code. Will be SQLITE_OK if the tables were successfully dropped.
      *
      * @see SQLT::dropAllTables(sqlite3 *db, char **errMsg)
      */
-    template<typename DB_STRUCT>
+    template<typename SQLT_DB>
     inline int dropAllTables(char **errMsg)
     {
         int result;
         sqlite3 *db;
-        auto dbInfo = DB_STRUCT::template SQLTDatabase<DB_STRUCT>::sqlt_static_database_info();
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
         result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
         if (result != SQLITE_OK)
@@ -1742,7 +1742,7 @@ namespace SQLT
             return result;
         }
 
-        result = SQLT::dropAllTables<DB_STRUCT>(db, errMsg);
+        result = SQLT::dropAllTables<SQLT_DB>(db, errMsg);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
