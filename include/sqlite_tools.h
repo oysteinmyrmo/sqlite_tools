@@ -211,6 +211,11 @@ namespace SQLT
                 return std::string(data, size);
             }
 
+            bool operator==(const std::string& other) const
+            {
+                return other.compare(0, size, data) == 0;
+            }
+
             const char *data; // Not null-terminated
             size_t size;
         };
@@ -297,6 +302,7 @@ namespace SQLT
             T U::* member;
             Flags flags;
             typedef T type;
+            typedef U classType;
         };
 
         template<typename U>
@@ -306,6 +312,7 @@ namespace SQLT
             int U::* member;
             Flags flags;
             typedef int type;
+            typedef U classType;
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_INTEGER_FUNCTIONS
@@ -318,6 +325,7 @@ namespace SQLT
             double U::* member;
             Flags flags;
             typedef double type;
+            typedef U classType;
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_REAL_FUNCTIONS
@@ -330,6 +338,7 @@ namespace SQLT
             std::string U::* member;
             Flags flags;
             typedef std::string type;
+            typedef U classType;
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_TEXT_FUNCTIONS
@@ -342,6 +351,7 @@ namespace SQLT
             Nullable<int> U::* member;
             Flags flags;
             typedef Nullable<int> type;
+            typedef U classType;
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_INTEGER_FUNCTIONS
@@ -354,6 +364,7 @@ namespace SQLT
             Nullable<double> U::* member;
             Flags flags;
             typedef Nullable<double> type;
+            typedef U classType;
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_REAL_FUNCTIONS
@@ -366,6 +377,7 @@ namespace SQLT
             Nullable<std::string> U::* member;
             Flags flags;
             typedef Nullable<std::string> type;
+            typedef U classType;
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_TEXT_FUNCTIONS
@@ -379,6 +391,7 @@ namespace SQLT
             T defaultValue;
             Flags flags;
             typedef T type;
+            typedef U classType;
         };
 
         template<typename U>
@@ -389,6 +402,7 @@ namespace SQLT
             int defaultValue;
             Flags flags;
             typedef int type;
+            typedef U classType;
 
             std::string defaultValueString() const { return std::to_string(defaultValue); }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
@@ -403,6 +417,7 @@ namespace SQLT
             double defaultValue;
             Flags flags;
             typedef double type;
+            typedef U classType;
 
             std::string defaultValueString() const { return std::to_string(defaultValue); }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
@@ -417,6 +432,7 @@ namespace SQLT
             std::string defaultValue;
             Flags flags;
             typedef std::string type;
+            typedef U classType;
 
             std::string defaultValueString() const { return std::string("\"") + defaultValue + "\""; }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
@@ -431,6 +447,7 @@ namespace SQLT
             int defaultValue;
             Flags flags;
             typedef Nullable<int> type;
+            typedef U classType;
 
             std::string defaultValueString() const { return std::to_string(defaultValue); }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
@@ -445,6 +462,7 @@ namespace SQLT
             double defaultValue;
             Flags flags;
             typedef Nullable<double> type;
+            typedef U classType;
 
             std::string defaultValueString() const { return std::to_string(defaultValue); }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
@@ -459,6 +477,7 @@ namespace SQLT
             std::string defaultValue;
             Flags flags;
             typedef Nullable<std::string> type;
+            typedef U classType;
 
             std::string defaultValueString() const { return std::string("\"") + defaultValue + "\""; }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
@@ -512,6 +531,131 @@ namespace SQLT
         constexpr const ColInfoWithDefault<SQLT::Nullable<std::string>, U> makeColumnInfo(const char(&name)[NAME_SIZE], SQLT::Nullable<std::string> U::* member, const char* defaultValue, Flags flags)
         {
             return { ColName(name), member, std::string(defaultValue), flags };
+        }
+
+        template<typename T1, typename U1, typename T2, typename U2>
+        struct MemberPointerComparer
+        {
+            static inline bool compare(T1 U1::* member1, T2 U2::* member2)
+            {
+                return false;
+            }
+        };
+
+        template<typename U1, typename U2>
+        struct MemberPointerComparer<int, U1, int, U2>
+        {
+            static inline bool compare(int U1::* member1, int U2::* member2)
+            {
+                return member1 == member2;
+            }
+        };
+
+        template<typename U1, typename U2>
+        struct MemberPointerComparer<std::string, U1, std::string, U2>
+        {
+            static inline bool compare(std::string U1::* member1, std::string U2::* member2)
+            {
+                return member1 == member2;
+            }
+        };
+
+        template<typename U1, typename U2>
+        struct MemberPointerComparer<double, U1, double, U2>
+        {
+            static inline bool compare(double U1::* member1, double U2::* member2)
+            {
+                return member1 == member2;
+            }
+        };
+
+        template<typename U1, typename U2>
+        struct MemberPointerComparer<SQLT::Nullable<int>, U1, SQLT::Nullable<int>, U2>
+        {
+            static inline bool compare(SQLT::Nullable<int> U1::* member1, SQLT::Nullable<int> U2::* member2)
+            {
+                return member1 == member2;
+            }
+        };
+
+        template<typename U1, typename U2>
+        struct MemberPointerComparer<SQLT::Nullable<std::string>, U1, SQLT::Nullable<std::string>, U2>
+        {
+            static inline bool compare(SQLT::Nullable<std::string> U1::* member1, SQLT::Nullable<std::string> U2::* member2)
+            {
+                return member1 == member2;
+            }
+        };
+
+        template<typename U1, typename U2>
+        struct MemberPointerComparer<SQLT::Nullable<double>, U1, SQLT::Nullable<double>, U2>
+        {
+            static inline bool compare(SQLT::Nullable<double> U1::* member1, SQLT::Nullable<double> U2::* member2)
+            {
+                return member1 == member2;
+            }
+        };
+
+        template<size_t INDEX, size_t SIZE, typename COL_TUPLE, typename T, typename U>
+        struct ColumnTraverser_GetColumnName
+        {
+            static inline std::string traverse(const COL_TUPLE &columns, T U::* member)
+            {
+                auto col = columns.template get<INDEX>();
+                if (MemberPointerComparer<typename decltype(col)::type, typename decltype(col)::classType, T, U>::compare(col.member, member))
+                    return col.name.toString();
+                return ColumnTraverser_GetColumnName<INDEX + 1, SIZE, COL_TUPLE, T, U>::traverse(columns, member);
+            }
+        };
+
+        template<size_t INDEX, typename COL_TUPLE, typename T, typename U>
+        struct ColumnTraverser_GetColumnName<INDEX, INDEX, COL_TUPLE, T, U>
+        {
+            static inline std::string traverse(const COL_TUPLE &columns, T U::* member)
+            {
+                auto col = columns.template get<INDEX>();
+                if (MemberPointerComparer<typename decltype(col)::type, typename decltype(col)::classType, T, U>::compare(col.member, member))
+                    return col.name.toString();
+                return "";
+            }
+        };
+
+        template<typename SQLT_TABLE, typename T, typename U>
+        inline std::string getColumnName(T U::* member)
+        {
+            auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
+            return ColumnTraverser_GetColumnName<0, decltype(columns)::size - 1, decltype(columns), T, U>::traverse(columns, member);
+        }
+
+        template<size_t INDEX, typename COL_TUPLE>
+        struct ColumnTraverser_GetColumnInfoPosition
+        {
+            static inline size_t traverse(const COL_TUPLE &columns, const std::string& colName)
+            {
+                auto& col = columns.template get<INDEX>();
+                if (col.name == colName)
+                    return INDEX;
+                return ColumnTraverser_GetColumnInfoPosition<INDEX - 1, COL_TUPLE>::traverse(columns, colName);
+            }
+        };
+
+        template<typename COL_TUPLE>
+        struct ColumnTraverser_GetColumnInfoPosition<0, COL_TUPLE>
+        {
+            static inline size_t traverse(const COL_TUPLE &columns, const std::string& colName)
+            {
+                auto& col = columns.template get<0>();
+                if (col.name == colName)
+                    return 0;
+                return -1; // Underflow on purpose
+            }
+        };
+
+        template<typename SQLT_TABLE>
+        inline size_t getColumnInfoPosition(const std::string& colName)
+        {
+            auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
+            return ColumnTraverser_GetColumnInfoPosition<decltype(columns)::size - 1, decltype(columns)>::traverse(columns, colName);
         }
 
         template<size_t INDEX, typename COL_TUPLE>
@@ -902,6 +1046,99 @@ namespace SQLT
             SQLiteMemberAssigner<T, U, SQLT_TABLE>::assignMember(stmt, index, row, colInfo.member);
         }
 
+        template<typename T>
+        struct SQLiteValueAssigner
+        {
+            static inline void assignValue(T& value, sqlite3_stmt *stmt)
+            {
+                assert(false); // T is not a type that SQLite Tools can use. Must be int, double or std::string
+            }
+        };
+
+        template<>
+        struct SQLiteValueAssigner<int>
+        {
+            static inline void assignValue(int& value, sqlite3_stmt *stmt)
+            {
+                int dataType = sqlite3_column_type(stmt, 0);
+                assert(dataType != SQLITE_NULL);
+                value = sqlite3_column_int(stmt, 0);
+            }
+        };
+
+        template<>
+        struct SQLiteValueAssigner<double>
+        {
+            static inline void assignValue(double& value, sqlite3_stmt *stmt)
+            {
+                int dataType = sqlite3_column_type(stmt, 0);
+                assert(dataType != SQLITE_NULL);
+                value = sqlite3_column_double(stmt, 0);
+            }
+        };
+
+        template<>
+        struct SQLiteValueAssigner<std::string>
+        {
+            static inline void assignValue(std::string& value, sqlite3_stmt *stmt)
+            {
+                int dataType = sqlite3_column_type(stmt, 0);
+                assert(dataType != SQLITE_NULL);
+                value = std::string((const char*)sqlite3_column_text(stmt, 0));
+            }
+        };
+
+        template<>
+        struct SQLiteValueAssigner<SQLT::Nullable<int>>
+        {
+            static inline void assignValue(SQLT::Nullable<int>& value, sqlite3_stmt *stmt)
+            {
+                int dataType = sqlite3_column_type(stmt, 0);
+                value.is_null = (dataType == SQLITE_NULL);
+                if (!value.is_null)
+                {
+                    assert(dataType == SQLITE_INTEGER);
+                    value.value = sqlite3_column_int(stmt, 0);
+                }
+            }
+        };
+
+        template<>
+        struct SQLiteValueAssigner<SQLT::Nullable<double>>
+        {
+            static inline void assignValue(SQLT::Nullable<double>& value, sqlite3_stmt *stmt)
+            {
+                int dataType = sqlite3_column_type(stmt, 0);
+                value.is_null = (dataType == SQLITE_NULL);
+                if (!value.is_null)
+                {
+                    assert(dataType == SQLITE_FLOAT);
+                    value.value = sqlite3_column_double(stmt, 0);
+                }
+            }
+        };
+
+        template<>
+        struct SQLiteValueAssigner<SQLT::Nullable<std::string>>
+        {
+            static inline void assignValue(SQLT::Nullable<std::string>& value, sqlite3_stmt *stmt)
+            {
+                int dataType = sqlite3_column_type(stmt, 0);
+                value.is_null = (dataType == SQLITE_NULL);
+                if (!value.is_null)
+                {
+                    assert(dataType == SQLITE_TEXT);
+                    value.value = std::string((const char*)sqlite3_column_text(stmt, 0));
+                }
+            }
+        };
+
+        template<typename T>
+        inline void assignValue(T& value, sqlite3_stmt *stmt)
+        {
+            SQLiteValueAssigner<T>::assignValue(value, stmt);
+        }
+
         template<size_t INDEX, size_t SIZE, typename COL_TUPLE, typename SQLT_TABLE>
         struct SQLiteColumnTraverser
         {
@@ -1127,7 +1364,9 @@ namespace SQLT
      * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
      *
-     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *rows)
+     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
      */
     template<typename SQLT_TABLE>
     inline int selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
@@ -1164,20 +1403,22 @@ namespace SQLT
     /**
      * Select all rows from a table.
      *
-     * @tparam DB_STRUCT The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @tparam SQLT_TABLE An SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME.
      * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
      * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
      *
-     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *rows)
+     * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
      */
-    template<typename DB_STRUCT, typename SQLT_TABLE>
+    template<typename SQLT_DB, typename SQLT_TABLE>
     inline int selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
     {
         int result;
         sqlite3 *db;
-        auto dbInfo = DB_STRUCT::template SQLTDatabase<DB_STRUCT>::sqlt_static_database_info();
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
         result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
         if (result != SQLITE_OK)
@@ -1187,6 +1428,104 @@ namespace SQLT
         }
 
         result = SQLT::selectAll<SQLT_TABLE>(db, output, approximate_row_count);
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        return sqlite3_close(db);
+    }
+
+    /**
+     * Select all rows from a table for a given column (i.e. "SELECT member FROM SQLT_TABLE;").
+     *
+     * @tparam SQLT_DB The database to select from, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_TABLE The SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME to select from.
+     * @param db The sqlite3 instance to select the rows from.
+     * @param member Pointer to the member in the SQLT_TABLE struct to select.
+     * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
+     *
+     * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     */
+    template<typename SQLT_DB, typename SQLT_TABLE, typename T>
+    inline int select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+    {
+        int result = SQLITE_ERROR;
+
+        if (output->size() < approximate_row_count)
+            output->reserve(approximate_row_count);
+
+        std::string colName = SQLT::Internal::getColumnName<SQLT_TABLE>(member);
+        if (colName.size())
+        {
+            std::string tableName = SQLT::tableName<SQLT_TABLE>();
+            std::string query = "SELECT " + colName + " FROM " + tableName + ";";
+
+            sqlite3_stmt *stmt;
+            result = sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
+            if (result == SQLITE_OK)
+            {
+                T selectedValue;
+                while (true)
+                {
+                    result = sqlite3_step(stmt);
+                    if (result == SQLITE_ROW)
+                    {
+                        SQLT::Internal::assignValue(selectedValue, stmt);
+                        output->emplace_back(selectedValue);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                result = sqlite3_finalize(stmt);
+                return result;
+            }
+
+            result = sqlite3_finalize(stmt);
+        }
+
+        return result;
+    }
+
+    /**
+     * Select all rows from a table for a given column (i.e. "SELECT member FROM SQLT_TABLE;").
+     *
+     * @tparam SQLT_DB The database to select from, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @tparam SQLT_TABLE The SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME to select from.
+     * @param member Pointer to the member in the SQLT_TABLE struct to select.
+     * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
+     *
+     * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     */
+    template<typename SQLT_DB, typename SQLT_TABLE, typename T>
+    inline int select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+    {
+        int result;
+        sqlite3 *db;
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
+
+        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        result = SQLT::select<SQLT_DB>(db, member, output);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);

@@ -261,5 +261,58 @@ int main()
     assert(dbContainer.allergen_in_ingredient.size()  ==  selectedContainer.allergen_in_ingredient.size());
     assert(dbContainer.allergens.size()               ==  selectedContainer.allergens.size());
 
+    // 6. Select single rows only and verify some of the data.
+    std::vector<decltype(recipes_db::recipes::id)> recipeIds;
+    result = SQLT::select<recipes_db, recipes_db::recipes>(&recipes_db::recipes::id, &recipeIds, 5);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(recipeIds.size() == 5);
+    SQLT_ASSERT(recipeIds[0] == 1);
+    SQLT_ASSERT(recipeIds[4] == 5);
+
+    std::vector<decltype(recipes_db::recipes::name)> recipeNames;
+    result = SQLT::select<recipes_db, recipes_db::recipes>(&recipes_db::recipes::name, &recipeNames, 5);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(recipeNames.size() == 5);
+    SQLT_ASSERT(recipeNames[1] == "Cauliflower Bonanzá");
+    SQLT_ASSERT(recipeNames[2] == "Peter's Speciality");
+    SQLT_ASSERT(recipeNames[3] == "The Stew");
+
+    std::vector<decltype(recipes_db::recipes::portions)> recipePortions;
+    result = SQLT::select<recipes_db, recipes_db::recipes>(&recipes_db::recipes::portions, &recipePortions, 5);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(recipePortions.size() == 5);
+    SQLT_FUZZY_ASSERT(recipePortions[0], 2);
+    SQLT_FUZZY_ASSERT(recipePortions[2], 4);
+    SQLT_FUZZY_ASSERT(recipePortions[4], 4);
+
+    std::vector<decltype(recipes_db::ingredients::name)> ingredientNames;
+    result = SQLT::select<recipes_db, recipes_db::ingredients>(&recipes_db::ingredients::name, &ingredientNames, 5);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(ingredientNames.size() == 10);
+    SQLT_ASSERT(ingredientNames[3] == "Meatballs");
+    SQLT_ASSERT(ingredientNames[7] == "Spices");
+    SQLT_ASSERT(ingredientNames[9] == "Sausages");
+
+    std::vector<decltype(recipes_db::recipes::favorite)> recipeFavorites;
+    result = SQLT::select<recipes_db, recipes_db::recipes>(&recipes_db::recipes::favorite, &recipeFavorites, 5);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(recipeFavorites.size() == 5);
+    SQLT_ASSERT(recipeFavorites[0].is_null == false);
+    SQLT_ASSERT(recipeFavorites[0].value == 0);
+    SQLT_ASSERT(recipeFavorites[1].is_null == true);
+    SQLT_ASSERT(recipeFavorites[4].is_null == false);
+    SQLT_ASSERT(recipeFavorites[4].value == 1);
+
+    std::vector<decltype(recipes_db::allergens::description)> allergenDescriptions;
+    result = SQLT::select<recipes_db, recipes_db::allergens>(&recipes_db::allergens::description, &allergenDescriptions, 5);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(allergenDescriptions.size() == 4);
+    SQLT_ASSERT(allergenDescriptions[0].is_null == true);
+    SQLT_ASSERT(allergenDescriptions[1].is_null == true);
+    SQLT_ASSERT(allergenDescriptions[2].is_null == false);
+    SQLT_ASSERT(allergenDescriptions[2].value == "All kinds of nuts.");
+    SQLT_ASSERT(allergenDescriptions[3].is_null == false);
+    SQLT_ASSERT(allergenDescriptions[3].value == "Deadly!");
+
     return 0;
 }

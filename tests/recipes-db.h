@@ -112,7 +112,7 @@ struct recipes_db
         );
     };
 
-    SQLT_DATABASE_WITH_NAME(recipes_db, "asd",
+    SQLT_DATABASE_WITH_NAME(recipes_db, "recipes_db.sqlite",
         SQLT_DATABASE_TABLE(recipes),
         SQLT_DATABASE_TABLE(ingredient_in_recipe),
         SQLT_DATABASE_TABLE(ingredients),
