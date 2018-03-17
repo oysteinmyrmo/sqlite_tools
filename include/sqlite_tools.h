@@ -901,7 +901,7 @@ namespace SQLT
         {
             static inline int bindValue(sqlite3_stmt *stmt, int index, const std::string& value)
             {
-                return sqlite3_bind_text(stmt, index, value.c_str(), value.length(), SQLITE_STATIC);
+                return sqlite3_bind_text(stmt, index, value.c_str(), (int)value.length(), SQLITE_STATIC);
             }
         };
 
@@ -928,7 +928,7 @@ namespace SQLT
         {
             static inline int bindValue(sqlite3_stmt *stmt, int index, const SQLT::Nullable<std::string>& value)
             {
-                return value.is_null ? sqlite3_bind_null(stmt, index) : sqlite3_bind_text(stmt, index, value.value.c_str(), value.value.length(), SQLITE_STATIC);
+                return value.is_null ? sqlite3_bind_null(stmt, index) : sqlite3_bind_text(stmt, index, value.value.c_str(), (int)value.value.length(), SQLITE_STATIC);
             }
         };
 
