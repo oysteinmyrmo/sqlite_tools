@@ -989,7 +989,6 @@ namespace SQLT
                 if (dataType == SQLITE_NULL)
                 {
                     (row.*memberPtr).is_null = true;
-                    return;
                 }
                 else
                 {
@@ -1009,7 +1008,6 @@ namespace SQLT
                 if (dataType == SQLITE_NULL)
                 {
                     (row.*memberPtr).is_null = true;
-                    return;
                 }
                 else
                 {
@@ -1029,7 +1027,6 @@ namespace SQLT
                 if (dataType == SQLITE_NULL)
                 {
                     (row.*memberPtr).is_null = true;
-                    return;
                 }
                 else
                 {
@@ -1041,13 +1038,13 @@ namespace SQLT
         };
 
         template<typename T, typename U, typename SQLT_TABLE>
-        inline void assignMember(const ColInfo<T, U>& colInfo, SQLT_TABLE& row, sqlite3_stmt * stmt, int index)
+        inline void assignMember(const ColInfo<T, U>& colInfo, SQLT_TABLE& row, sqlite3_stmt *stmt, int index)
         {
             SQLiteMemberAssigner<T, U, SQLT_TABLE>::assignMember(stmt, index, row, colInfo.member);
         }
 
         template<typename T, typename U, typename SQLT_TABLE>
-        inline void assignMember(const ColInfoWithDefault<T, U>& colInfo, SQLT_TABLE& row, sqlite3_stmt * stmt, int index)
+        inline void assignMember(const ColInfoWithDefault<T, U>& colInfo, SQLT_TABLE& row, sqlite3_stmt *stmt, int index)
         {
             SQLiteMemberAssigner<T, U, SQLT_TABLE>::assignMember(stmt, index, row, colInfo.member);
         }
