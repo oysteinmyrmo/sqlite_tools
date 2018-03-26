@@ -1394,7 +1394,7 @@ namespace SQLT
             if (result == SQLITE_ROW)
             {
                 SQLT::Internal::iterateAndAssignMembers(row, stmt);
-                output->push_back(row);
+                output->emplace_back(row);
             }
             else
             {
