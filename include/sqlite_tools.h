@@ -1379,7 +1379,10 @@ namespace SQLT
         const std::string query = std::string("SELECT * FROM ") + SQLT::tableName<SQLT_TABLE>() + ";";
         result = sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
         if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
             return result;
+        }
 
         if (output->size() < approximate_row_count)
             output->reserve(approximate_row_count);
