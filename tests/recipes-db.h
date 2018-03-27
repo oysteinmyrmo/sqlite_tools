@@ -136,4 +136,44 @@ struct recipes_db
             JT_MEMBER(allergens)
         );
     };
+
+    struct AllergenNames
+    {
+        decltype(allergens::name) name;
+
+        SQLT_QUERY_RESULT_STRUCT(AllergenNames,
+            SQLT_QUERY_RESULT_MEMBER(name)
+        );
+    };
+
+    struct AllergensInIngredient
+    {
+        decltype(ingredients::id) ingredient_id;
+        decltype(ingredients::name) ingredient_name;
+        decltype(allergens::name) allergen_name;
+
+        SQLT_QUERY_RESULT_STRUCT(AllergensInIngredient,
+            SQLT_QUERY_RESULT_MEMBER(ingredient_id),
+            SQLT_QUERY_RESULT_MEMBER(ingredient_name),
+            SQLT_QUERY_RESULT_MEMBER(allergen_name)
+        );
+    };
+
+    struct AllergensInRecipe
+    {
+        decltype(recipes::id) recipe_id;
+        decltype(recipes::name) recipe_name;
+        decltype(ingredients::id) ingredient_id;
+        decltype(ingredients::name) ingredient_name;
+        decltype(allergens::name) allergen_name;
+
+        // Note: Intentionally different order of the members for testing such situations.
+        SQLT_QUERY_RESULT_STRUCT(AllergensInIngredient,
+            SQLT_QUERY_RESULT_MEMBER(allergen_name),
+            SQLT_QUERY_RESULT_MEMBER(ingredient_name),
+            SQLT_QUERY_RESULT_MEMBER(recipe_name),
+            SQLT_QUERY_RESULT_MEMBER(recipe_id),
+            SQLT_QUERY_RESULT_MEMBER(ingredient_id)
+        );
+    };
 };

@@ -85,12 +85,28 @@ const char jsonDatabase[] = R"json(
           "ingredient_id": 4
         },
         {
+            "recipe_id": 3,
+            "ingredient_id": 5
+        },
+        {
           "recipe_id": 3,
           "ingredient_id": 8
         },
         {
           "recipe_id": 4,
           "ingredient_id": 1
+        },
+        {
+            "recipe_id": 4,
+            "ingredient_id": 2
+        },
+        {
+            "recipe_id": 4,
+            "ingredient_id": 3
+        },
+        {
+            "recipe_id": 4,
+            "ingredient_id": 5
         },
         {
           "recipe_id": 4,
@@ -313,6 +329,65 @@ int main()
     SQLT_ASSERT(allergenDescriptions[2].value == "All kinds of nuts.");
     SQLT_ASSERT(allergenDescriptions[3].is_null == false);
     SQLT_ASSERT(allergenDescriptions[3].value == "Deadly!");
+
+    // 7. Select allergen names into AllergenNames struct.
+    std::vector<recipes_db::AllergenNames> allergenNames;
+    result = SQLT::select<recipes_db>("SELECT name FROM allergens;", &allergenNames, 4);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(allergenNames.size() == 4);
+
+    const char allergensInIngredientsQuery[] = R"SQL(
+        SELECT  i.id AS ingredient_id,
+                i.name AS ingredient_name,
+                a.name AS allergen_name
+        FROM    ingredients AS i
+        INNER JOIN  allergen_in_ingredient AS ai
+            ON  ai.ingredient_id = i.id
+        INNER JOIN  allergens AS a
+            ON  a.id = ai.allergen_id
+        ORDER BY i.id ASC;
+    )SQL";
+
+    // 8. Select allergens in ingredients into AllergensInIngredient struct.
+    std::vector<recipes_db::AllergensInIngredient> aii;
+    result = SQLT::select<recipes_db>(allergensInIngredientsQuery, &aii, 3);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(aii.size() == 3);
+    SQLT_ASSERT(aii[0].ingredient_id == 2 && aii[0].ingredient_name == "Cheese"        && aii[0].allergen_name == "Milk");
+    SQLT_ASSERT(aii[1].ingredient_id == 3 && aii[1].ingredient_name == "Peanut Butter" && aii[1].allergen_name == "Peanuts");
+    SQLT_ASSERT(aii[2].ingredient_id == 5 && aii[2].ingredient_name == "Spaghetti"     && aii[2].allergen_name == "Gluten");
+
+    const char allergensInRecipesQuery[] = R"SQL(
+        SELECT  r.id AS recipe_id,
+                r.name AS recipe_name,
+                i.id AS ingredient_id,
+                i.name AS ingredient_name,
+                a.name AS allergen_name
+        FROM    recipes AS r
+        INNER JOIN  ingredient_in_recipe AS ir
+            ON  ir.recipe_id = r.id
+        INNER JOIN  ingredients AS i
+            ON  i.id = ir.ingredient_id
+        INNER JOIN  allergen_in_ingredient AS ai
+            ON ai.ingredient_id = i.id
+        INNER JOIN  allergens AS a
+            ON a.id = ai.allergen_id
+        ORDER BY r.id DESC, i.id ASC;
+    )SQL";
+
+    // 9. Select allergens in recipes into AllergensInRecipe struct.
+    std::vector<recipes_db::AllergensInRecipe> air;
+    result = SQLT::select<recipes_db>(allergensInRecipesQuery, &air, 7);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(air.size() == 7);
+    SQLT_ASSERT(air[0].recipe_id == 5 && air[0].recipe_name == "Spaghetti Bolognese" && air[0].ingredient_id == 5 && air[0].ingredient_name == "Spaghetti"     && air[0].allergen_name == "Gluten");
+    SQLT_ASSERT(air[1].recipe_id == 4 && air[1].recipe_name == "The Stew"            && air[1].ingredient_id == 2 && air[1].ingredient_name == "Cheese"        && air[1].allergen_name == "Milk");
+    SQLT_ASSERT(air[2].recipe_id == 4 && air[2].recipe_name == "The Stew"            && air[2].ingredient_id == 3 && air[2].ingredient_name == "Peanut Butter" && air[2].allergen_name == "Peanuts");
+    SQLT_ASSERT(air[3].recipe_id == 4 && air[3].recipe_name == "The Stew" && air[3].ingredient_id == 5 && air[3].ingredient_name == "Spaghetti" && air[3].allergen_name == "Gluten");
+    SQLT_ASSERT(air[4].recipe_id == 3 && air[4].recipe_name == "Peter's Speciality"  && air[4].ingredient_id == 2 && air[4].ingredient_name == "Cheese"        && air[4].allergen_name == "Milk");
+    SQLT_ASSERT(air[5].recipe_id == 3 && air[5].recipe_name == "Peter's Speciality"  && air[5].ingredient_id == 3 && air[5].ingredient_name == "Peanut Butter" && air[5].allergen_name == "Peanuts");
+    SQLT_ASSERT(air[6].recipe_id == 3 && air[6].recipe_name == "Peter's Speciality"  && air[6].ingredient_id == 5 && air[6].ingredient_name == "Spaghetti"     && air[6].allergen_name == "Gluten");
+
 
     return 0;
 }

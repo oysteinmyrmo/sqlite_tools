@@ -1158,6 +1158,17 @@ namespace SQLT
                 assignMember(columns.template get<INDEX>(), row, stmt, (int)INDEX);
                 SQLiteColumnTraverser<INDEX + 1, SIZE, COL_TUPLE, SQLT_TABLE>::iterateAndAssignMembers(columns, row, stmt);
             }
+
+            static inline bool iterateAndAssignMembersByColumnName(const COL_TUPLE& columns, SQLT_TABLE& row, sqlite3_stmt *stmt, const char* const colName, int colIndex)
+            {
+                auto colInfo = columns.template get<INDEX>();
+                if (colInfo.name == colName)
+                {
+                    assignMember(colInfo, row, stmt, colIndex);
+                    return true;
+                }
+                return SQLiteColumnTraverser<INDEX + 1, SIZE, COL_TUPLE, SQLT_TABLE>::iterateAndAssignMembersByColumnName(columns, row, stmt, colName, colIndex);
+            }
         };
 
         template<size_t INDEX, typename COL_TUPLE, typename SQLT_TABLE>
@@ -1171,6 +1182,17 @@ namespace SQLT
             static inline void iterateAndAssignMembers(const COL_TUPLE& columns, SQLT_TABLE& row, sqlite3_stmt *stmt)
             {
                 assignMember(columns.template get<INDEX>(), row, stmt, (int)INDEX);
+            }
+
+            static inline bool iterateAndAssignMembersByColumnName(const COL_TUPLE& columns, SQLT_TABLE& row, sqlite3_stmt *stmt, const char* const colName, int colIndex)
+            {
+                auto colInfo = columns.template get<INDEX>();
+                if (colInfo.name == colName)
+                {
+                    assignMember(colInfo, row, stmt, colIndex);
+                    return true;
+                }
+                return false;
             }
         };
 
@@ -1186,6 +1208,13 @@ namespace SQLT
         {
             auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
             SQLiteColumnTraverser<0, decltype(columns)::size - 1, decltype(columns), SQLT_TABLE>::iterateAndAssignMembers(columns, row, stmt);
+        }
+
+        template<typename SQLT_QUERY_STRUCT>
+        inline void iterateAndAssignMembersByColumnName(SQLT_QUERY_STRUCT& row, sqlite3_stmt *stmt, const char* const colName, int colIndex)
+        {
+            auto columns = SQLT_QUERY_STRUCT::template SQLTBase<SQLT_QUERY_STRUCT>::sqlt_static_column_info();
+            SQLiteColumnTraverser<0, decltype(columns)::size - 1, decltype(columns), SQLT_QUERY_STRUCT>::iterateAndAssignMembersByColumnName(columns, row, stmt, colName, colIndex);
         }
     } // End namespace Internal
 
@@ -1359,14 +1388,126 @@ namespace SQLT
     }
 
     /**
+     * Select rows from a custom SQLite query into the corresponding query struct.
+     *
+     * @tparam SQLT_QUERY_STRUCT An SQLT query struct defined by SQLT_QUERY_RESULT_STRUCT.
+     * @param db The sqlite3 instance to select the rows from.
+     * @param selectQuery The SQLite SELECT query to perform to select rows into the output vector.
+     * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to the expected row count if possible (if such information is available), to avoid unneccesary allocations.
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
+     *
+     * @see SQLT::select(const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+     * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     */
+    template<typename SQLT_QUERY_STRUCT>
+    inline int select(sqlite3 *db, const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+    {
+        int result = SQLITE_ERROR;
+
+        sqlite3_stmt *stmt;
+        result = sqlite3_prepare(db, selectQuery.c_str(), -1, &stmt, NULL);
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        if (output->size() < approximate_row_count)
+            output->reserve(approximate_row_count);
+
+        SQLT_QUERY_STRUCT row;
+        while (true)
+        {
+            result = sqlite3_step(stmt);
+            if (result == SQLITE_ROW)
+            {
+                int count = sqlite3_column_count(stmt);
+
+                if (count == 0)
+                {
+                    assert(false); // TODO: Close db and return an error code instead? Select statements with 0 resulting columns should probably be considered an error.
+                    continue;
+                }
+
+                for (int colIndex = 0; colIndex < count; colIndex++)
+                {
+                    const char* const colName = sqlite3_column_name(stmt, colIndex);
+                    Internal::iterateAndAssignMembersByColumnName(row, stmt, colName, colIndex);
+                }
+
+                output->emplace_back(row);
+            }
+            else if (result == SQLITE_DONE)
+            {
+                break;
+            }
+            else
+            {
+                sqlite3_finalize(stmt);
+                return result;
+            }
+        }
+
+        result = sqlite3_finalize(stmt);
+        return result;
+    }
+
+    /**
+     * Select rows from a custom SQLite query into the corresponding query struct.
+     *
+     * @tparam SQLT_QUERY_STRUCT An SQLT query struct defined by SQLT_QUERY_RESULT_STRUCT.
+     * @param selectQuery The SQLite SELECT query to perform to select rows into the output vector.
+     * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to the expected row count if possible (if such information is available), to avoid unneccesary allocations.
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
+     *
+     * @see SQLT::select(sqlite3 *db, const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+     * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
+     */
+    template<typename SQLT_DB, typename SQLT_QUERY_STRUCT>
+    inline int select(const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+    {
+        int result;
+        sqlite3 *db;
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
+
+        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        result = SQLT::select<SQLT_QUERY_STRUCT>(db, selectQuery, output, approximate_row_count);
+
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        result = sqlite3_close(db);
+        return result;
+    }
+
+    /**
      * Select all rows from a table.
      *
      * @tparam SQLT_TABLE An SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME.
      * @param db The sqlite3 instance to select the rows from.
      * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
-     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to or greater than the expected row count, if such information is available, to avoid unneccesary allocations.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
      *
+     * @see SQLT::select(sqlite3 *db, const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
      * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
      * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
      * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
@@ -1396,9 +1537,14 @@ namespace SQLT
                 SQLT::Internal::iterateAndAssignMembers(row, stmt);
                 output->emplace_back(row);
             }
-            else
+            else if (result == SQLITE_DONE)
             {
                 break;
+            }
+            else
+            {
+                sqlite3_finalize(stmt);
+                return result;
             }
         }
 
@@ -1412,9 +1558,11 @@ namespace SQLT
      * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @tparam SQLT_TABLE An SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME.
      * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
-     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to or greater than the expected row count, if such information is available, to avoid unneccesary allocations.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
      *
+     * @see SQLT::select(sqlite3 *db, const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
      * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
      * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
      * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
@@ -1451,9 +1599,11 @@ namespace SQLT
      * @param db The sqlite3 instance to select the rows from.
      * @param member Pointer to the member in the SQLT_TABLE struct to select.
      * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
-     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to or greater than the expected row count, if such information is available, to avoid unneccesary allocations.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
      *
+     * @see SQLT::select(sqlite3 *db, const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
      * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
      * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
      * @see SQLT::select(T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
@@ -1485,9 +1635,14 @@ namespace SQLT
                         SQLT::Internal::assignValue(selectedValue, stmt);
                         output->emplace_back(selectedValue);
                     }
-                    else
+                    else if (result == SQLITE_DONE)
                     {
                         break;
+                    }
+                    else
+                    {
+                        sqlite3_finalize(stmt);
+                        return result;
                     }
                 }
             }
@@ -1510,9 +1665,11 @@ namespace SQLT
      * @tparam SQLT_TABLE The SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME to select from.
      * @param member Pointer to the member in the SQLT_TABLE struct to select.
      * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
-     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be as close to the expected row count as possible, though not below, if such information is available, to avoid unneccesary allocations.
+     * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to or greater than the expected row count, if such information is available, to avoid unneccesary allocations.
      * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
      *
+     * @see SQLT::select(sqlite3 *db, const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
+     * @see SQLT::select(const std::string& selectQuery, std::vector<SQLT_QUERY_STRUCT> *output, size_t approximate_row_count = 50)
      * @see SQLT::selectAll(sqlite3 *db, std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
      * @see SQLT::selectAll(std::vector<SQLT_TABLE> *output, size_t approximate_row_count = 50)
      * @see SQLT::select(sqlite3 *db, T SQLT_TABLE::* member, std::vector<T> *output, size_t approximate_row_count = 50)
@@ -1651,6 +1808,21 @@ namespace SQLT
 
 #define SQLT_TABLE(SQLT_TABLE_STRUCT, ...) \
     SQLT_TABLE_WITH_NAME(SQLT_TABLE_STRUCT, #SQLT_TABLE_STRUCT, __VA_ARGS__)
+
+#define SQLT_QUERY_RESULT_MEMBER(member) \
+    SQLT::Internal::makeColumnInfo(#member, &SQLT_STRUCT_T::member, SQLT::Flags::NONE)
+
+#define SQLT_QUERY_RESULT_STRUCT(SQLT_TABLE_STRUCT, ...) \
+    template<typename SQLT_STRUCT_T> \
+    struct SQLTBase \
+    { \
+        using CT = decltype(SQLT::Internal::makeTuple(__VA_ARGS__)); \
+        static const CT &sqlt_static_column_info() \
+        { \
+            static auto ret = SQLT::Internal::makeTuple(__VA_ARGS__); \
+            return ret; \
+        } \
+    };
 
     /**
      * Create all tables in a database if they do not exist.
