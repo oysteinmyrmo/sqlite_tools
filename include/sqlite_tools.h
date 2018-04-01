@@ -244,12 +244,44 @@ namespace SQLT
             , is_null(false)
         {}
 
-        Nullable(const T& val, bool is_null)
+        Nullable(const T& value, bool is_null)
             : value(value)
             , is_null(is_null)
         {}
 
         T value;
+        bool is_null;
+    };
+
+    template <>
+    struct Nullable<std::string>
+    {
+        Nullable()
+            : is_null(true)
+        {}
+
+        Nullable(const std::string& value)
+            : value(value)
+            , is_null(false)
+        {}
+
+        /// Conversion constructor
+        Nullable(const char* convertValue)
+            : value(convertValue)
+            , is_null(false)
+        {}
+
+        Nullable(const std::string& value, bool is_null)
+            : value(value)
+            , is_null(is_null)
+        {}
+
+        Nullable(const char* value, bool is_null)
+            : value(value)
+            , is_null(is_null)
+        {}
+
+        std::string value;
         bool is_null;
     };
 
