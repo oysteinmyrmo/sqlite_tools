@@ -1394,7 +1394,7 @@ namespace SQLT
         sqlite3 *db;
         auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
-        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1520,7 +1520,7 @@ namespace SQLT
         sqlite3 *db;
         auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
-        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1616,7 +1616,7 @@ namespace SQLT
         sqlite3 *db;
         auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
-        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1723,7 +1723,7 @@ namespace SQLT
         sqlite3 *db;
         auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
-        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1770,12 +1770,21 @@ namespace SQLT
             return TableInfo<SQLT_TABLE>();
         }
 
-        template<typename SQLT_DATABASE>
+        template<typename SQLT_DB>
         struct DatabaseInfo
         {
             DatabaseName name;
             DatabasePath path;
+            static std::string overrideDatabasePath; // Used to override the database path on runtime if needed.
+
+            std::string dbFilePath() const
+            {
+                return DatabaseInfo::overrideDatabasePath.size() ? DatabaseInfo::overrideDatabasePath : (path.toString() + name.toString());
+            }
         };
+
+        template<typename SQLT_DB>
+        std::string DatabaseInfo<SQLT_DB>::overrideDatabasePath;
 
         template<typename SQLT_DATABASE, size_t NAME_SIZE, size_t PATH_SIZE>
         constexpr const DatabaseInfo<SQLT_DATABASE> makeDatabaseInfo(const char(&name)[NAME_SIZE], const char(&path)[PATH_SIZE])
@@ -1867,6 +1876,20 @@ namespace SQLT
     };
 
     /**
+     * Explicitly set the path to the SQLite database file on runtime instead of using the one defined on compile time with the macros
+     * SQLT_DATABASE, SQLT_DATABASE_WITH_NAME and SQLT_DATABASE_WITH_NAME_AND_PATH.
+     *
+     * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param dbPath The absolute path to the SQLite database file to read from and write to.
+     */
+    template<typename SQLT_DB>
+    inline void setDatabasePath(const std::string& dbPath)
+    {
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
+        dbInfo.overrideDatabasePath = dbPath;
+    }
+
+    /**
      * Create all tables in a database if they do not exist.
      *
      * @tparam SQLT_DB The database to insert into, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
@@ -1899,7 +1922,7 @@ namespace SQLT
         sqlite3 *db;
         auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
-        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1949,7 +1972,7 @@ namespace SQLT
         sqlite3 *db;
         auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
 
-        result = sqlite3_open(dbInfo.name.toString().c_str(), &db);
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
