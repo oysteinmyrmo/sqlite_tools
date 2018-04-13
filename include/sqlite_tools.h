@@ -249,6 +249,11 @@ namespace SQLT
             , is_null(is_null)
         {}
 
+        bool operator==(const Nullable<T>& other) const
+        {
+            return (is_null && other.is_null) || (value == other.value);
+        }
+
         T value;
         bool is_null;
     };
@@ -280,6 +285,11 @@ namespace SQLT
             : value(value)
             , is_null(is_null)
         {}
+
+        bool operator==(const Nullable<std::string>& other) const
+        {
+            return (is_null && other.is_null) || (value == other.value);
+        }
 
         std::string value;
         bool is_null;
