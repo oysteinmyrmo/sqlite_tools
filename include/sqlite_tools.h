@@ -1239,7 +1239,7 @@ namespace SQLT
         };
 
         template<typename SQLT_TABLE>
-        inline int iterateAndBindValues(SQLT_TABLE row, sqlite3_stmt *stmt)
+        inline int iterateAndBindValues(const SQLT_TABLE& row, sqlite3_stmt *stmt)
         {
             auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
             return SQLiteColumnTraverser<0, decltype(columns)::size - 1, decltype(columns), SQLT_TABLE>::iterateAndBindValues(columns, row, stmt);
