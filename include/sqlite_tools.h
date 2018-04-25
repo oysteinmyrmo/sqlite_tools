@@ -1405,6 +1405,7 @@ namespace SQLT
         }
 
         result = SQLT::insert<SQLT_TABLE>(db, rows);
+
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1927,6 +1928,7 @@ namespace SQLT
         }
 
         result = SQLT::createAllTables<SQLT_DB>(db, errMsg);
+
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
