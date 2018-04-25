@@ -1456,10 +1456,7 @@ namespace SQLT
         sqlite3_stmt *stmt;
         result = sqlite3_prepare(db, selectQuery.c_str(), -1, &stmt, NULL);
         if (result != SQLITE_OK)
-        {
-            sqlite3_close(db);
             return result;
-        }
 
         if (output->size() < approximate_row_count)
             output->reserve(approximate_row_count);
