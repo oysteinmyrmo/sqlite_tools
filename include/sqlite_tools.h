@@ -1470,10 +1470,7 @@ namespace SQLT
                 int count = sqlite3_column_count(stmt);
 
                 if (count == 0)
-                {
-                    assert(false); // TODO: Close db and return an error code instead? Select statements with 0 resulting columns should probably be considered an error.
                     continue;
-                }
 
                 for (int colIndex = 0; colIndex < count; colIndex++)
                 {
