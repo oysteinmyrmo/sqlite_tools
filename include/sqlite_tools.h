@@ -1350,7 +1350,10 @@ namespace SQLT
 
             result = sqlite3_step(stmt);
             if (result != SQLITE_DONE)
-                break;
+            {
+                sqlite3_finalize(stmt);
+                return result;
+            }
         }
 
         result = sqlite3_finalize(stmt);
