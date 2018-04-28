@@ -1337,7 +1337,7 @@ namespace SQLT
         sqlite3_stmt *stmt;
         const std::string preparedStatement = SQLT::Internal::createInsertPreparedStatement<SQLT_TABLE>();
 
-        result = sqlite3_prepare(db, preparedStatement.c_str(), -1, &stmt, NULL);
+        result = sqlite3_prepare_v2(db, preparedStatement.c_str(), -1, &stmt, NULL);
         if (result != SQLITE_OK)
             return result;
 
@@ -1455,7 +1455,7 @@ namespace SQLT
         int result = SQLITE_ERROR;
 
         sqlite3_stmt *stmt;
-        result = sqlite3_prepare(db, selectQuery.c_str(), -1, &stmt, NULL);
+        result = sqlite3_prepare_v2(db, selectQuery.c_str(), -1, &stmt, NULL);
         if (result != SQLITE_OK)
             return result;
 
@@ -1558,7 +1558,7 @@ namespace SQLT
         int result;
         sqlite3_stmt *stmt;
         const std::string query = std::string("SELECT * FROM ") + SQLT::tableName<SQLT_TABLE>() + ";";
-        result = sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
+        result = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
         if (result != SQLITE_OK)
         {
             sqlite3_close(db);
@@ -1663,7 +1663,7 @@ namespace SQLT
             std::string query = "SELECT " + colName + " FROM " + tableName + ";";
 
             sqlite3_stmt *stmt;
-            result = sqlite3_prepare(db, query.c_str(), -1, &stmt, NULL);
+            result = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
             if (result == SQLITE_OK)
             {
                 T selectedValue;
