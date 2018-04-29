@@ -1500,6 +1500,7 @@ namespace SQLT
      * Select rows from a custom SQLite query into the corresponding query struct.
      *
      * @tparam SQLT_QUERY_STRUCT An SQLT query struct defined by SQLT_QUERY_RESULT_STRUCT.
+     * @tparam SQLT_DB The database to select from, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
      * @param selectQuery The SQLite SELECT query to perform to select rows into the output vector.
      * @param output The vector to save the results in. Will be resized to approximate_row_count in the process. Is expected to be empty, but the vector will not be cleared.
      * @param approximate_row_count Optional number for initial vector.reserve() call. Should be equal to the expected row count if possible (if such information is available), to avoid unneccesary allocations.
