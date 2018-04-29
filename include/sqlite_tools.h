@@ -1740,6 +1740,70 @@ namespace SQLT
     }
 
     /**
+     * Update rows using a custom SQLite query.
+     *
+     * @param db The sqlite3 instance to execute the update query on.
+     * @param query The SQLite update query to perform. The query is expected to be an UPDATE query (i.e. no results are returned)..
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
+     *
+     * @see SQLT::seupdate(const std::string& query)
+     */
+    inline int update(sqlite3 *db, const std::string& query)
+    {
+        int result = SQLITE_ERROR;
+
+        sqlite3_stmt *stmt;
+        result = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
+        if (result != SQLITE_OK)
+            return result;
+
+        result = sqlite3_step(stmt);
+        if (result != SQLITE_DONE)
+        {
+            sqlite3_finalize(stmt);
+            return result;
+        }
+
+        result = sqlite3_finalize(stmt);
+        return result;
+    }
+
+    /**
+     * Update rows using a custom SQLite query.
+     *
+     * @tparam SQLT_DB The database to select from, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param query The SQLite update query to perform. The query is expected to be an UPDATE query (i.e. no results are returned)..
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
+     *
+     * @see SQLT::update(sqlite3 *db, const std::string& query)
+     */
+    template<typename SQLT_DB>
+    inline int update(const std::string& query)
+    {
+        int result;
+        sqlite3 *db;
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
+
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), &db);
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        result = SQLT::update(db, query);
+
+        if (result != SQLITE_OK)
+        {
+            sqlite3_close(db);
+            return result;
+        }
+
+        result = sqlite3_close(db);
+        return result;
+    }
+
+    /**
      * SQLT Internal namespace. Should normally not be referenced externally.
      */
     namespace Internal
