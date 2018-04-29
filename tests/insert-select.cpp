@@ -388,6 +388,15 @@ int main()
     SQLT_ASSERT(air[5].recipe_id == 3 && air[5].recipe_name == "Peter's Speciality"  && air[5].ingredient_id == 3 && air[5].ingredient_name == "Peanut Butter" && air[5].allergen_name == "Peanuts");
     SQLT_ASSERT(air[6].recipe_id == 3 && air[6].recipe_name == "Peter's Speciality"  && air[6].ingredient_id == 5 && air[6].ingredient_name == "Spaghetti"     && air[6].allergen_name == "Gluten");
 
+    // 10. Select all recipes with custom query API. Tests columns starting with the same characters ("portions" and "portions_unit").
+    std::vector<recipes_db::recipes> customRecipes;
+    result = SQLT::select<recipes_db>("SELECT * FROM recipes ORDER BY id DESC;", &customRecipes);
+    SQLT_ASSERT(result == SQLITE_OK);
+    SQLT_ASSERT(customRecipes.size() == 5);
+    SQLT_FUZZY_ASSERT(customRecipes[0].portions, 4);
+    SQLT_ASSERT(customRecipes[0].portions_unit == "big plates");
+    SQLT_FUZZY_ASSERT(customRecipes[4].portions, 2);
+    SQLT_ASSERT(customRecipes[4].portions_unit == "portions");
 
     return 0;
 }

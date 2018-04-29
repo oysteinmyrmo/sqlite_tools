@@ -213,7 +213,7 @@ namespace SQLT
 
             bool operator==(const std::string& other) const
             {
-                return other.compare(0, size, data) == 0;
+                return (other.size() == size) && (other.compare(0, size, data) == 0);
             }
 
             const char *data; // Not null-terminated
