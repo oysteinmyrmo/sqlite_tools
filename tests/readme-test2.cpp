@@ -18,20 +18,23 @@ struct Database
         std::string name;
         double value;
         SQLT::Nullable<std::string> description;
+        SQLT::Nullable<bool> enabled;
 
         // Define SomeTable to be a JSON Tools struct so we can parse JSON strings to SomeTable.
         JT_STRUCT(
             JT_MEMBER(id),
             JT_MEMBER(name),
             JT_MEMBER(value),
-            JT_MEMBER(description)
+            JT_MEMBER(description),
+            JT_MEMBER(enabled)
         );
 
         SQLT_TABLE(SomeTable,               // SQLite table name = "SomeTable"
             SQLT_COLUMN_PRIMARY_KEY(id),    // INTEGER PRIMARY KEY NOT NULL
             SQLT_COLUMN(name),              // TEXT NOT NULL
             SQLT_COLUMN(value),             // REAL NOT NULL
-            SQLT_COLUMN(description)        // TEXT
+            SQLT_COLUMN(description),       // TEXT
+            SQLT_COLUMN(enabled)            // INTEGER
         );
     };
 
@@ -53,12 +56,14 @@ const char jsonData[] = R"json(
         "id": 2,
         "name": "name2",
         "value": 2.0,
-        "description": null
+        "description": null,
+        "enabled": true
     },
     {
         "id": 3,
         "name": "name3",
-        "value": 3.0
+        "value": 3.0,
+        "enabled": false
     }
 ]
 )json";

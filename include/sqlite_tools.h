@@ -392,6 +392,20 @@ namespace SQLT
             SQLT_COL_INFO_TEXT_FUNCTIONS
         };
 
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<typename U>
+        struct ColInfo<bool, U>
+        {
+            ColName name;
+            bool U::* member;
+            Flags flags;
+            typedef bool type;
+            typedef U classType;
+
+            SQLT_COL_INFO_DEFAULT_FUNCTIONS
+            SQLT_COL_INFO_INTEGER_FUNCTIONS
+        };
+
         template<typename U>
         struct ColInfo<Nullable<int>, U>
         {
@@ -429,6 +443,20 @@ namespace SQLT
 
             SQLT_COL_INFO_DEFAULT_FUNCTIONS
             SQLT_COL_INFO_TEXT_FUNCTIONS
+        };
+
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<typename U>
+        struct ColInfo<Nullable<bool>, U>
+        {
+            ColName name;
+            Nullable<bool> U::* member;
+            Flags flags;
+            typedef Nullable<bool> type;
+            typedef U classType;
+
+            SQLT_COL_INFO_DEFAULT_FUNCTIONS
+            SQLT_COL_INFO_INTEGER_FUNCTIONS
         };
 
         template<typename T, typename U>
@@ -487,6 +515,22 @@ namespace SQLT
             SQLT_COL_INFO_TEXT_FUNCTIONS
         };
 
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<typename U>
+        struct ColInfoWithDefault<bool, U>
+        {
+            ColName name;
+            bool U::* member;
+            bool defaultValue;
+            Flags flags;
+            typedef bool type;
+            typedef U classType;
+
+            std::string defaultValueString() const { return (defaultValue == true) ? "1" : "0"; }
+            SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
+            SQLT_COL_INFO_INTEGER_FUNCTIONS
+        };
+
         template<typename U>
         struct ColInfoWithDefault<Nullable<int>, U>
         {
@@ -530,6 +574,22 @@ namespace SQLT
             std::string defaultValueString() const { return std::string("\"") + defaultValue + "\""; }
             SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
             SQLT_COL_INFO_TEXT_FUNCTIONS
+        };
+
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<typename U>
+        struct ColInfoWithDefault<Nullable<bool>, U>
+        {
+            ColName name;
+            Nullable<bool> U::* member;
+            bool defaultValue;
+            Flags flags;
+            typedef Nullable<bool> type;
+            typedef U classType;
+
+            std::string defaultValueString() const { return (defaultValue == true) ? "1" : "0"; }
+            SQLT_COL_INFO_DEFAULT_FUNCTIONS_WITH_DEFAULT_VALUE
+            SQLT_COL_INFO_INTEGER_FUNCTIONS
         };
 
         // Table name creation.
@@ -947,6 +1007,16 @@ namespace SQLT
             }
         };
 
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<>
+        struct SQLiteValueBinder<bool>
+        {
+            static inline int bindValue(sqlite3_stmt *stmt, int index, bool value)
+            {
+                return sqlite3_bind_int(stmt, index, value ? 1 : 0);
+            }
+        };
+
         template<>
         struct SQLiteValueBinder<SQLT::Nullable<int>>
         {
@@ -971,6 +1041,16 @@ namespace SQLT
             static inline int bindValue(sqlite3_stmt *stmt, int index, const SQLT::Nullable<std::string>& value)
             {
                 return value.is_null ? sqlite3_bind_null(stmt, index) : sqlite3_bind_text(stmt, index, value.value.c_str(), (int)value.value.length(), SQLITE_STATIC);
+            }
+        };
+
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<>
+        struct SQLiteValueBinder<SQLT::Nullable<bool>>
+        {
+            static inline int bindValue(sqlite3_stmt *stmt, int index, const SQLT::Nullable<bool>& value)
+            {
+                return value.is_null ? sqlite3_bind_null(stmt, index) : sqlite3_bind_int(stmt, index, value.value ? 1 : 0);
             }
         };
 
@@ -1019,6 +1099,16 @@ namespace SQLT
             static inline void assignMember(sqlite3_stmt *stmt, int index, SQLT_TABLE& row, std::string U::* memberPtr)
             {
                 row.*memberPtr = std::string((const char*)sqlite3_column_text(stmt, index));
+            }
+        };
+
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<typename U, typename SQLT_TABLE>
+        struct SQLiteMemberAssigner<bool, U, SQLT_TABLE>
+        {
+            static inline void assignMember(sqlite3_stmt *stmt, int index, SQLT_TABLE& row, bool U::* memberPtr)
+            {
+                row.*memberPtr = (sqlite3_column_int(stmt, index) == 0) ? false : true;
             }
         };
 
@@ -1075,6 +1165,26 @@ namespace SQLT
                     assert(dataType == SQLITE_TEXT);
                     (row.*memberPtr).is_null = false;
                     (row.*memberPtr).value = std::string((const char*)sqlite3_column_text(stmt, index));
+                }
+            }
+        };
+
+        // Fake bools to be an int type since SQLite does not have booleans.
+        template<typename U, typename SQLT_TABLE>
+        struct SQLiteMemberAssigner<SQLT::Nullable<bool>, U, SQLT_TABLE>
+        {
+            static inline void assignMember(sqlite3_stmt *stmt, int index, SQLT_TABLE& row, SQLT::Nullable<bool> U::* memberPtr)
+            {
+                int dataType = sqlite3_column_type(stmt, index);
+                if (dataType == SQLITE_NULL)
+                {
+                    (row.*memberPtr).is_null = true;
+                }
+                else
+                {
+                    assert(dataType == SQLITE_INTEGER);
+                    (row.*memberPtr).is_null = false;
+                    (row.*memberPtr).value = sqlite3_column_int(stmt, index);
                 }
             }
         };

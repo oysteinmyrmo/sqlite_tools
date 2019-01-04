@@ -16,12 +16,14 @@ struct Database
         std::string name;
         double value;
         SQLT::Nullable<std::string> description;
+        SQLT::Nullable<bool> enabled;
 
-        SQLT_TABLE(SomeTable,               // SQLite table name = "SomeTable"
-            SQLT_COLUMN_PRIMARY_KEY(id),    // INTEGER PRIMARY KEY NOT NULL
-            SQLT_COLUMN(name),              // TEXT NOT NULL
-            SQLT_COLUMN(value),             // REAL NOT NULL
-            SQLT_COLUMN(description)        // TEXT
+        SQLT_TABLE(SomeTable,                   // SQLite table name = "SomeTable"
+            SQLT_COLUMN_PRIMARY_KEY(id),        // INTEGER PRIMARY KEY NOT NULL
+            SQLT_COLUMN(name),                  // TEXT NOT NULL
+            SQLT_COLUMN(value),                 // REAL NOT NULL
+            SQLT_COLUMN(description),           // TEXT
+            SQLT_COLUMN_DEFAULT(enabled, true)  // INTEGER DEFAULT 1
         );
     };
 
@@ -63,6 +65,7 @@ struct Database
     {
         int sometable_id;
         std::string sometable_name;
+        SQLT::Nullable<bool> sometable_enabled;
         int someothertable_id;
         std::string someothertable_name;
         SQLT::Nullable<double> someothertable_amount;
@@ -70,6 +73,7 @@ struct Database
         SQLT_QUERY_RESULT_STRUCT(QueryOutput,                // Query struct name = "QueryOutput"
             SQLT_QUERY_RESULT_MEMBER(sometable_id),          // Add INTEGER NOT NULL mapped to output column named "sometable_id" in SQLite
             SQLT_QUERY_RESULT_MEMBER(sometable_name),        // Add TEXT NOT NULL mapped to output column named "sometable_name" in SQLite
+            SQLT_QUERY_RESULT_MEMBER(sometable_enabled),     // Add INTEGER DEFAULT 1 mapped to output column named "sometable_enabled" in SQLite
             SQLT_QUERY_RESULT_MEMBER(someothertable_id),     // Add INTEGER NOT NULL mapped to output column named "someothertable_id" in SQLite
             SQLT_QUERY_RESULT_MEMBER(someothertable_name),   // Add TEXT NOT NULL mapped to output column named "someothertable_name" in SQLite
             SQLT_QUERY_RESULT_MEMBER(someothertable_amount)  // Add REAL mapped to output column named "someothertable_amount" in SQLite
@@ -81,9 +85,9 @@ int mainWithoutErrorChecks()
 {
     // Create some data to insert into SomeTable.
     std::vector<Database::SomeTable> dataSomeTable({
-        { 1, "name1", 1.0, { "desc1"  }},
-        { 2, "name2", 2.0, { /*NULL*/ }},
-        { 3, "name3", 3.0, { "desc3"  }}
+        { 1, "name1", 1.0, { "desc1"  }, true         },
+        { 2, "name2", 2.0, { /*NULL*/ }, false        },
+        { 3, "name3", 3.0, { "desc3"  }, { /*NULL*/ } }
     });
 
     // Create some data to insert into ManyToManyTable.
@@ -130,6 +134,7 @@ int mainWithoutErrorChecks()
     const char query[] = R"SQL(
         SELECT  st.id      AS sometable_id,
                 st.name    AS sometable_name,
+                st.enabled AS sometable_enabled,
                 sot.id     AS someothertable_id,
                 sot.name   AS someothertable_name,
                 sot.amount AS someothertable_amount
@@ -149,9 +154,9 @@ int mainWithErrorChecks()
 {
     // Create some data to insert into SomeTable.
     std::vector<Database::SomeTable> dataSomeTable({
-        { 1, "name1", 1.0, { "desc1"  }},
-        { 2, "name2", 2.0, { /*NULL*/ }},
-        { 3, "name3", 3.0, { "desc3"  }}
+        { 1, "name1", 1.0, { "desc1"  }, true         },
+        { 2, "name2", 2.0, { /*NULL*/ }, false        },
+        { 3, "name3", 3.0, { "desc3"  }, { /*NULL*/ } }
     });
 
     // Create some data to insert into ManyToManyTable.
@@ -209,6 +214,7 @@ int mainWithErrorChecks()
     const char query[] = R"SQL(
         SELECT  st.id      AS sometable_id,
                 st.name    AS sometable_name,
+                st.enabled AS sometable_enabled,
                 sot.id     AS someothertable_id,
                 sot.name   AS someothertable_name,
                 sot.amount AS someothertable_amount

@@ -20,12 +20,14 @@ struct Database
         std::string name;
         double value;
         SQLT::Nullable<std::string> description;
+        SQLT::Nullable<bool> enabled;
 
-        SQLT_TABLE(SomeTable,               // SQLite table name = "SomeTable"
-            SQLT_COLUMN_PRIMARY_KEY(id),    // INTEGER PRIMARY KEY NOT NULL
-            SQLT_COLUMN(name),              // TEXT NOT NULL
-            SQLT_COLUMN(value),             // REAL NOT NULL
-            SQLT_COLUMN(description)        // TEXT
+        SQLT_TABLE(SomeTable,                   // SQLite table name = "SomeTable"
+            SQLT_COLUMN_PRIMARY_KEY(id),        // INTEGER PRIMARY KEY NOT NULL
+            SQLT_COLUMN(name),                  // TEXT NOT NULL
+            SQLT_COLUMN(value),                 // REAL NOT NULL
+            SQLT_COLUMN(description),           // TEXT
+            SQLT_COLUMN_DEFAULT(enabled, true)  // INTEGER DEFAULT 1
         );
     };
 
@@ -67,6 +69,7 @@ struct Database
     {
         int sometable_id;
         std::string sometable_name;
+        SQLT::Nullable<bool> sometable_enabled;
         int someothertable_id;
         std::string someothertable_name;
         SQLT::Nullable<double> someothertable_amount;
@@ -74,6 +77,7 @@ struct Database
         SQLT_QUERY_RESULT_STRUCT(QueryOutput,                // Query struct name = "QueryOutput"
             SQLT_QUERY_RESULT_MEMBER(sometable_id),          // Add INTEGER NOT NULL mapped to output column named "sometable_id" in SQLite
             SQLT_QUERY_RESULT_MEMBER(sometable_name),        // Add TEXT NOT NULL mapped to output column named "sometable_name" in SQLite
+            SQLT_QUERY_RESULT_MEMBER(sometable_enabled),     // Add INTEGER DEFAULT 1 mapped to output column named "sometable_enabled" in SQLite
             SQLT_QUERY_RESULT_MEMBER(someothertable_id),     // Add INTEGER NOT NULL mapped to output column named "someothertable_id" in SQLite
             SQLT_QUERY_RESULT_MEMBER(someothertable_name),   // Add TEXT NOT NULL mapped to output column named "someothertable_name" in SQLite
             SQLT_QUERY_RESULT_MEMBER(someothertable_amount)  // Add REAL mapped to output column named "someothertable_amount" in SQLite
@@ -85,9 +89,9 @@ int main()
 {
     // Create some data to insert into SomeTable.
     std::vector<Database::SomeTable> dataSomeTable({
-        { 1, "name1", 1.0, { "desc1"  }},
-        { 2, "name2", 2.0, { /*NULL*/ }},
-        { 3, "name3", 3.0, { "desc3"  }}
+        { 1, "name1", 1.0, { "desc1"  }, true         },
+        { 2, "name2", 2.0, { /*NULL*/ }, false        },
+        { 3, "name3", 3.0, { "desc3"  }, { /*NULL*/ } }
     });
 
     // Create some data to insert into ManyToManyTable.
@@ -134,6 +138,7 @@ int main()
     const char query[] = R"SQL(
         SELECT  st.id      AS sometable_id,
                 st.name    AS sometable_name,
+                st.enabled AS sometable_enabled,
                 sot.id     AS someothertable_id,
                 sot.name   AS someothertable_name,
                 sot.amount AS someothertable_amount
@@ -149,6 +154,18 @@ int main()
     return 0;
 }
 ```
+
+## Data Types
+
+SQLite has 5 data types: `NULL`, `INTEGER`, `REAL`, `TEXT` and `BLOB`. The mapping between C++ data types and SQLite data types in SQLite Tools are as follows:
+
+SQLite|C++
+------|---
+`NULL`|`SQLT::Nullable<T>` where `T` can be any of the other C++ data types below
+`INTEGER`|`int`, `bool` (`bool` automatically maps to `1` and `0` for `true` and `false`)
+`REAL`|`double`
+`TEXT`|`std::string`
+`BLOB`|Not yet supported
 
 ## SQLite Tools with JSON Tools
 
@@ -189,20 +206,23 @@ struct Database
         std::string name;
         double value;
         SQLT::Nullable<std::string> description;
+        SQLT::Nullable<bool> enabled;
 
         // Define SomeTable to be a JSON Tools struct so we can parse JSON strings to SomeTable.
         JT_STRUCT(
             JT_MEMBER(id),
             JT_MEMBER(name),
             JT_MEMBER(value),
-            JT_MEMBER(description)
+            JT_MEMBER(description),
+            JT_MEMBER(enabled)
         );
 
         SQLT_TABLE(SomeTable,               // SQLite table name = "SomeTable"
             SQLT_COLUMN_PRIMARY_KEY(id),    // INTEGER PRIMARY KEY NOT NULL
             SQLT_COLUMN(name),              // TEXT NOT NULL
             SQLT_COLUMN(value),             // REAL NOT NULL
-            SQLT_COLUMN(description)        // TEXT
+            SQLT_COLUMN(description),       // TEXT
+            SQLT_COLUMN(enabled)            // INTEGER
         );
     };
 
@@ -224,12 +244,14 @@ const char jsonData[] = R"json(
         "id": 2,
         "name": "name2",
         "value": 2.0,
-        "description": null
+        "description": null,
+        "enabled": true
     },
     {
         "id": 3,
         "name": "name3",
-        "value": 3.0
+        "value": 3.0,
+        "enabled": false
     }
 ]
 )json";
