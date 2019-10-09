@@ -2049,6 +2049,71 @@ namespace SQLT
     };
 
     /**
+     * Open the database.
+     *
+     * @tparam SQLT_DB The database to open, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param db The sqlite3 instance to open the dtabase for.
+     */
+    template<typename SQLT_DB>
+    inline int open(sqlite3 **db)
+    {
+        int result = SQLITE_OK;
+        auto dbInfo = SQLT_DB::template SQLTDatabase<SQLT_DB>::sqlt_static_database_info();
+        result = sqlite3_open(dbInfo.dbFilePath().c_str(), db);
+        if (result != SQLITE_OK)
+            sqlite3_close(*db);
+        return result;
+    }
+
+    /**
+     * Close the database.
+     *
+     * @tparam SQLT_DB The database to close, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param db The sqlite3 instance to close the database for.
+     */
+    template<typename SQLT_DB>
+    inline int close(sqlite3 *db)
+    {
+        return sqlite3_close(db);
+    }
+
+    /**
+     * Begin a transaction on the argument database.
+     *
+     * @tparam SQLT_DB The database to start the transaction for, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param db The sqlite3 instance to start the transaction for.
+     */
+    template<typename SQLT_DB>
+    inline int begin(sqlite3 *db)
+    {
+		return sqlite3_exec(db, "BEGIN", 0, 0, 0);
+    }
+
+    /**
+     * Rollback a transaction on the argument database.
+     *
+     * @tparam SQLT_DB The database to rollback the transaction for, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param db The sqlite3 instance to rollback the transaction for.
+     */
+    template<typename SQLT_DB>
+    inline int rollback(sqlite3 *db)
+    {
+        return sqlite3_exec(db, "ROLLBACK", 0, 0, 0);
+    }
+
+    /**
+     * Commit a transaction on the argument database.
+     *
+     * @tparam SQLT_DB The database to commit the transaction for, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
+     * @param db The sqlite3 instance to commit the transaction for.
+     */
+    template<typename SQLT_DB>
+    inline int commit(sqlite3 *db)
+    {
+        return sqlite3_exec(db, "COMMIT", 0, 0, 0);
+    }
+
+    /**
      * Explicitly set the path to the SQLite database file on runtime instead of using the one defined on compile time with the macros
      * SQLT_DATABASE, SQLT_DATABASE_WITH_NAME and SQLT_DATABASE_WITH_NAME_AND_PATH.
      *

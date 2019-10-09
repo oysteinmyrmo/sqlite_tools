@@ -167,6 +167,16 @@ SQLite|C++
 `TEXT`|`std::string`
 `BLOB`|Not yet supported
 
+## Transactions
+
+Transaction are performed through calling `int SQLT::begin(sqlite3 *)`, `int SQLT::commit(sqlite3 *)` and `int SQLT::rollback(sqlite3 *)`. The `sqlite3*` pointer can be created by calling `int SQLT::open(sqlite3 **)` and destroyed by calling `int SQLT::close(sqlite3 *)`. When performing large or many operations on the database, transactions should always be used.
+
+An excerpt from the SQLite FAQ at https://www.sqlite.org/draft/faq.html#q19 is added to underline the importance of transactions:
+
+```
+Actually, SQLite will easily do 50,000 or more INSERT statements per second on an average desktop computer. But it will only do a few dozen transactions per second. Transaction speed is limited by the rotational speed of your disk drive. A transaction normally requires two complete rotations of the disk platter, which on a 7200RPM disk drive limits you to about 60 transactions per second.
+```
+
 ## SQLite Tools with JSON Tools
 
 SQLite Tools really shines when used in combination with JSON Tools: https://github.com/jorgen/json_tools JSON Tools can parse JSON strings into the same structs that SQLite Tools uses to insert data into SQLite.
