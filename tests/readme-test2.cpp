@@ -2,10 +2,10 @@
 #include <vector>
 #include <cstdio>
 
-// Note: The SQLITE_TOOLS_USE_JSON_TOOLS define is required to properly parse SQLite Tools types using JSON Tools.
+// Note: The SQLITE_TOOLS_USE_JSON_STRUCT define is required to properly parse SQLite Tools types using JSON Tools.
 #include <sqlite3/sqlite3.h>
-#define SQLITE_TOOLS_USE_JSON_TOOLS
-#include <json_tools/json_tools.h>
+#define SQLITE_TOOLS_USE_JSON_STRUCT
+#include <json_struct/json_struct.h>
 #include <sqlite_tools.h>
 
 // Statically define the database with a single table.
@@ -21,12 +21,12 @@ struct Database
         SQLT::Nullable<bool> enabled;
 
         // Define SomeTable to be a JSON Tools struct so we can parse JSON strings to SomeTable.
-        JT_STRUCT(
-            JT_MEMBER(id),
-            JT_MEMBER(name),
-            JT_MEMBER(value),
-            JT_MEMBER(description),
-            JT_MEMBER(enabled)
+        JS_OBJECT(
+            JS_MEMBER(id),
+            JS_MEMBER(name),
+            JS_MEMBER(value),
+            JS_MEMBER(description),
+            JS_MEMBER(enabled)
         );
 
         SQLT_TABLE(SomeTable,               // SQLite table name = "SomeTable"
@@ -71,10 +71,10 @@ const char jsonData[] = R"json(
 int main()
 {
     // Parse JSON string into structs using JSON Tools.
-    JT::ParseContext parseContext(jsonData);
+    JS::ParseContext parseContext(jsonData);
     std::vector<Database::SomeTable> rows;
     parseContext.parseTo(rows);
-    assert(parseContext.error == JT::Error::NoError);
+    assert(parseContext.error == JS::Error::NoError);
 
     char* errMsg;
     int result;
@@ -131,7 +131,7 @@ int main()
     }
 
     // Serialize the data selected from SQLite back to JSON using JSON Tools. This JSON string is identical to the jsonData string above (i.e. the JSON is identical).
-    std::string jsonSelected = JT::serializeStruct(selected);
+    std::string jsonSelected = JS::serializeStruct(selected);
 
     return 0;
 }

@@ -177,16 +177,16 @@ An excerpt from the SQLite FAQ at https://www.sqlite.org/draft/faq.html#q19 is a
 Actually, SQLite will easily do 50,000 or more INSERT statements per second on an average desktop computer. But it will only do a few dozen transactions per second. Transaction speed is limited by the rotational speed of your disk drive. A transaction normally requires two complete rotations of the disk platter, which on a 7200RPM disk drive limits you to about 60 transactions per second.
 ```
 
-## SQLite Tools with JSON Tools
+## SQLite Tools with JSON Struct
 
-SQLite Tools really shines when used in combination with JSON Tools: https://github.com/jorgen/json_tools JSON Tools can parse JSON strings into the same structs that SQLite Tools uses to insert data into SQLite.
+SQLite Tools really shines when used in combination with JSON Struct: https://github.com/jorgen/json_struct JSON Struct can parse JSON strings into the same structs that SQLite Tools uses to insert data into SQLite.
 
 Simply put:
 
 ```
 JSON string   ----->   struct   ----->   SQLite
                 ↑                 ↑
-           JT::parseTo()    SQLT::insert()
+           JS::parseTo()    SQLT::insert()
 ```
 
 The reverse is of course also possible:
@@ -194,16 +194,16 @@ The reverse is of course also possible:
 ```
 JSON string   <-----   struct   <-----   SQLite
                  ↑                 ↑
-      JT::serializeStruct()   SQLT::select()
+      JS::serializeStruct()   SQLT::select()
 ```
 
-Here is a sample similar to the one above, except now we parse a JSON string to our struct for insertion into SQLite, by use of JSON Tools. Then we select the data back from SQLite and serialize it to a JSON string using JSON Tools. This example is the same as the test named `readme-test2`.
+Here is a sample similar to the one above, except now we parse a JSON string to our struct for insertion into SQLite, by use of JSON Struct. Then we select the data back from SQLite and serialize it to a JSON string using JSON Struct. This example is the same as the test named `readme-test2`.
 
 ```c++
-// Note: The SQLITE_TOOLS_USE_JSON_TOOLS define is required to properly parse SQLite Tools types using JSON Tools.
+// Note: The SQLITE_TOOLS_USE_JSON_STRUCT define is required to properly parse SQLite Tools types using JSON Tools.
 #include <sqlite3/sqlite3.h>
-#define SQLITE_TOOLS_USE_JSON_TOOLS
-#include <json_tools/json_tools.h>
+#define SQLITE_TOOLS_USE_JSON_STRUCT
+#include <json_struct/json_struct.h>
 #include <sqlite_tools.h>
 
 // Statically define the database with a single table.
@@ -219,12 +219,12 @@ struct Database
         SQLT::Nullable<bool> enabled;
 
         // Define SomeTable to be a JSON Tools struct so we can parse JSON strings to SomeTable.
-        JT_STRUCT(
-            JT_MEMBER(id),
-            JT_MEMBER(name),
-            JT_MEMBER(value),
-            JT_MEMBER(description),
-            JT_MEMBER(enabled)
+        JS_OBJECT(
+            JS_MEMBER(id),
+            JS_MEMBER(name),
+            JS_MEMBER(value),
+            JS_MEMBER(description),
+            JS_MEMBER(enabled)
         );
 
         SQLT_TABLE(SomeTable,               // SQLite table name = "SomeTable"
@@ -269,10 +269,10 @@ const char jsonData[] = R"json(
 int main()
 {
     // Parse JSON string into structs using JSON Tools.
-    JT::ParseContext parseContext(jsonData);
+    JS::ParseContext parseContext(jsonData);
     std::vector<Database::SomeTable> rows;
     parseContext.parseTo(rows);
-    assert(parseContext.error == JT::Error::NoError);
+    assert(parseContext.error == JS::Error::NoError);
 
     char* errMsg;
     int result;
@@ -329,7 +329,7 @@ int main()
     }
 
     // Serialize the data selected from SQLite back to JSON using JSON Tools. This JSON string is identical to the jsonData string above (i.e. the JSON is identical).
-    std::string jsonSelected = JT::serializeStruct(selected);
+    std::string jsonSelected = JS::serializeStruct(selected);
 
     return 0;
 }

@@ -1,9 +1,9 @@
 #include <vector>
 #include "assert.h"
 
-#define SQLITE_TOOLS_USE_JSON_TOOLS
+#define SQLITE_TOOLS_USE_JSON_STRUCT
 #include <sqlite3/sqlite3.h>
-#include <json_tools/json_tools.h>
+#include <json_struct/json_struct.h>
 #include <sqlite_tools.h>
 
 const char all_types_data[] = R"json(
@@ -87,23 +87,23 @@ struct AllTypes
     SQLT::Nullable<std::string> name4;
     SQLT::Nullable<bool> enabled4;
 
-    JT_STRUCT(
-        JT_MEMBER(id),
-        JT_MEMBER(num),
-        JT_MEMBER(name),
-        JT_MEMBER(enabled),
-        JT_MEMBER(id2),
-        JT_MEMBER(num2),
-        JT_MEMBER(name2),
-        JT_MEMBER(enabled2),
-        JT_MEMBER(id3),
-        JT_MEMBER(num3),
-        JT_MEMBER(name3),
-        JT_MEMBER(enabled3),
-        JT_MEMBER(id4),
-        JT_MEMBER(num4),
-        JT_MEMBER(name4),
-        JT_MEMBER(enabled4)
+    JS_OBJECT(
+        JS_MEMBER(id),
+        JS_MEMBER(num),
+        JS_MEMBER(name),
+        JS_MEMBER(enabled),
+        JS_MEMBER(id2),
+        JS_MEMBER(num2),
+        JS_MEMBER(name2),
+        JS_MEMBER(enabled2),
+        JS_MEMBER(id3),
+        JS_MEMBER(num3),
+        JS_MEMBER(name3),
+        JS_MEMBER(enabled3),
+        JS_MEMBER(id4),
+        JS_MEMBER(num4),
+        JS_MEMBER(name4),
+        JS_MEMBER(enabled4)
     );
 
     SQLT_TABLE(AllTypes,                                                // Table name = "AllTypes"
@@ -154,9 +154,9 @@ int main()
         if (rc == SQLITE_OK)
         {
             std::vector<AllTypes> data;
-            JT::ParseContext jtContext(all_types_data);
-            jtContext.parseTo(data);
-            SQLT_ASSERT(jtContext.error == JT::Error::NoError);
+            JS::ParseContext jsContext(all_types_data);
+            jsContext.parseTo(data);
+            SQLT_ASSERT(jsContext.error == JS::Error::NoError);
 
             rc = SQLT::insert(db, data);
             SQLT_ASSERT(rc == SQLITE_OK);

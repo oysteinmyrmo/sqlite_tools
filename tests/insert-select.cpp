@@ -1,8 +1,8 @@
 #include "assert.h"
 
-#define SQLITE_TOOLS_USE_JSON_TOOLS
+#define SQLITE_TOOLS_USE_JSON_STRUCT
 #include <sqlite3/sqlite3.h>
-#include <json_tools/json_tools.h>
+#include <json_struct/json_struct.h>
 #include <sqlite_tools.h>
 #include "recipes-db.h"
 
@@ -240,9 +240,9 @@ int main()
 {
     // 0 Parse JSON data from string into dataContainer
     recipes_db::DatabaseContainer dbContainer;
-    JT::ParseContext context(jsonDatabase);
+    JS::ParseContext context(jsonDatabase);
     context.parseTo(dbContainer);
-    assert(context.error == JT::Error::NoError);
+    assert(context.error == JS::Error::NoError);
 
     char* errMsg;
     int result;

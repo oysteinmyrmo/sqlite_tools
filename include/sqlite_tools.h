@@ -93,7 +93,7 @@ namespace SQLT
             using type = typename element::type;
         };
 
-        // Tuple, stolen from https://github.com/jorgen/json_tools <-- json_tools is awesome, go give it some love!
+        // Tuple, stolen from https://github.com/jorgen/json_struct <-- json_struct is awesome, go give it some love!
         template<typename ...Ts>
         struct Tuple
         {
@@ -2253,35 +2253,35 @@ namespace SQLT
 }
 // END SQLT NAMESPACE
 
-// Note: json_tools.h must be included elsewhere in the application when using SQLITE_TOOLS_USE_JSON_TOOLS
-#if defined(SQLITE_TOOLS_USE_JSON_TOOLS)
-namespace JT
+// Note: json_struct.h must be included elsewhere in the application when using SQLITE_TOOLS_USE_JSON_STRUCT
+#if defined(SQLITE_TOOLS_USE_JSON_STRUCT)
+namespace JS
 {
     template<typename T>
     struct TypeHandler<SQLT::Nullable<T>>
     {
-        static inline Error unpackToken(SQLT::Nullable<T>& nullable, ParseContext &context)
+        static inline Error to(SQLT::Nullable<T>& nullable, ParseContext &context)
         {
-            if (context.token.value_type == JT::Type::Null)
+            if (context.token.value_type == JS::Type::Null)
             {
                 nullable.is_null = true;
                 return Error::NoError;
             }
 
             nullable.is_null = false;
-            return TypeHandler<T>::unpackToken(nullable.value, context);
+            return TypeHandler<T>::to(nullable.value, context);
         }
 
-        static inline void serializeToken(const SQLT::Nullable<T> nullable, Token &token, Serializer &serializer)
+        static inline void from(const SQLT::Nullable<T>& nullable, Token &token, Serializer &serializer)
         {
             if (nullable.is_null)
             {
-                token.value_type = JT::Type::Null;
+                token.value_type = JS::Type::Null;
                 serializer.write(token);
             }
             else
             {
-                JT::TypeHandler<T>::serializeToken(nullable.value, token, serializer);
+                JS::TypeHandler<T>::from(nullable.value, token, serializer);
             }
         }
     };

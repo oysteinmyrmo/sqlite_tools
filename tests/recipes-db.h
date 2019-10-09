@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <sqlite_tools.h>
-#include <json_tools/json_tools.h>
+#include <json_struct/json_struct.h>
 
 struct recipes_db
 {
@@ -15,14 +15,14 @@ struct recipes_db
         SQLT::Nullable<std::string> description;
         SQLT::Nullable<int> favorite;
 
-        JT_STRUCT(
-            JT_MEMBER(id),
-            JT_MEMBER(name),
-            JT_MEMBER(cooking_time),
-            JT_MEMBER(portions),
-            JT_MEMBER(portions_unit),
-            JT_MEMBER(description),
-            JT_MEMBER(favorite)
+        JS_OBJECT(
+            JS_MEMBER(id),
+            JS_MEMBER(name),
+            JS_MEMBER(cooking_time),
+            JS_MEMBER(portions),
+            JS_MEMBER(portions_unit),
+            JS_MEMBER(description),
+            JS_MEMBER(favorite)
         );
 
         SQLT_TABLE(recipes,
@@ -41,9 +41,9 @@ struct recipes_db
         int recipe_id;
         int ingredient_id;
 
-        JT_STRUCT(
-            JT_MEMBER(recipe_id),
-            JT_MEMBER(ingredient_id)
+        JS_OBJECT(
+            JS_MEMBER(recipe_id),
+            JS_MEMBER(ingredient_id)
         );
 
         SQLT_TABLE(ingredient_in_recipe,
@@ -60,12 +60,12 @@ struct recipes_db
         int vegetarian;
         int vegan;
 
-        JT_STRUCT(
-            JT_MEMBER(id),
-            JT_MEMBER(name),
-            JT_MEMBER(description),
-            JT_MEMBER(vegetarian),
-            JT_MEMBER(vegan)
+        JS_OBJECT(
+            JS_MEMBER(id),
+            JS_MEMBER(name),
+            JS_MEMBER(description),
+            JS_MEMBER(vegetarian),
+            JS_MEMBER(vegan)
         );
 
         SQLT_TABLE(ingredients,
@@ -82,9 +82,9 @@ struct recipes_db
         int allergen_id;
         int ingredient_id;
 
-        JT_STRUCT(
-            JT_MEMBER(allergen_id),
-            JT_MEMBER(ingredient_id)
+        JS_OBJECT(
+            JS_MEMBER(allergen_id),
+            JS_MEMBER(ingredient_id)
         );
 
         SQLT_TABLE(allergen_in_ingredient,
@@ -99,10 +99,10 @@ struct recipes_db
         std::string name;
         SQLT::Nullable<std::string> description;
 
-        JT_STRUCT(
-            JT_MEMBER(id),
-            JT_MEMBER(name),
-            JT_MEMBER(description)
+        JS_OBJECT(
+            JS_MEMBER(id),
+            JS_MEMBER(name),
+            JS_MEMBER(description)
         );
 
         SQLT_TABLE(allergens,
@@ -128,12 +128,12 @@ struct recipes_db
         std::vector<allergen_in_ingredient> allergen_in_ingredient;
         std::vector<allergens> allergens;
 
-        JT_STRUCT(
-            JT_MEMBER(recipes),
-            JT_MEMBER(ingredient_in_recipe),
-            JT_MEMBER(ingredients),
-            JT_MEMBER(allergen_in_ingredient),
-            JT_MEMBER(allergens)
+        JS_OBJECT(
+            JS_MEMBER(recipes),
+            JS_MEMBER(ingredient_in_recipe),
+            JS_MEMBER(ingredients),
+            JS_MEMBER(allergen_in_ingredient),
+            JS_MEMBER(allergens)
         );
     };
 
