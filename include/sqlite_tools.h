@@ -1215,8 +1215,7 @@ namespace SQLT
         {
             static inline void assignValue(int& value, sqlite3_stmt *stmt)
             {
-                int dataType = sqlite3_column_type(stmt, 0);
-                assert(dataType != SQLITE_NULL);
+                assert(sqlite3_column_type(stmt, 0) == SQLITE_INTEGER);
                 value = sqlite3_column_int(stmt, 0);
             }
         };
@@ -1226,8 +1225,7 @@ namespace SQLT
         {
             static inline void assignValue(double& value, sqlite3_stmt *stmt)
             {
-                int dataType = sqlite3_column_type(stmt, 0);
-                assert(dataType != SQLITE_NULL);
+                assert(sqlite3_column_type(stmt, 0) == SQLITE_FLOAT);
                 value = sqlite3_column_double(stmt, 0);
             }
         };
@@ -1237,8 +1235,7 @@ namespace SQLT
         {
             static inline void assignValue(std::string& value, sqlite3_stmt *stmt)
             {
-                int dataType = sqlite3_column_type(stmt, 0);
-                assert(dataType != SQLITE_NULL);
+                assert(sqlite3_column_type(stmt, 0) == SQLITE_TEXT);
                 value = std::string((const char*)sqlite3_column_text(stmt, 0));
             }
         };
