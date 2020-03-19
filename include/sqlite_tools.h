@@ -266,6 +266,11 @@ namespace SQLT
                 return (is_null && other.is_null) || (value < other.value);
         }
 
+        std::string toQueryString() const
+        {
+            return is_null ? "NULL" : std::to_string(value);
+        }
+
         T value;
         bool is_null;
     };
@@ -313,6 +318,11 @@ namespace SQLT
                 return is_null;
             else
                 return (is_null && other.is_null) || (value < other.value);
+        }
+
+        std::string toQueryString() const
+        {
+            return is_null ? "NULL" : std::string("'") + value + std::string("'");
         }
 
         std::string value;
