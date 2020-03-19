@@ -251,7 +251,19 @@ namespace SQLT
 
         bool operator==(const Nullable<T>& other) const
         {
-            return (is_null && other.is_null) || (value == other.value);
+            if (is_null ^ other.is_null)
+                return is_null;
+            else
+                return (is_null && other.is_null) || (value == other.value);
+        }
+
+        bool operator<(const Nullable<T>& other) const
+        {
+            // Only one of the items are null. Null items are considered lower than items with value.
+            if (is_null ^ other.is_null)
+                return is_null;
+            else
+                return (is_null && other.is_null) || (value < other.value);
         }
 
         T value;
@@ -288,7 +300,19 @@ namespace SQLT
 
         bool operator==(const Nullable<std::string>& other) const
         {
-            return (is_null && other.is_null) || (value == other.value);
+            if (is_null ^ other.is_null)
+                return false;
+            else
+                return (is_null && other.is_null) || (value == other.value);
+        }
+
+        bool operator<(const Nullable<std::string>& other) const
+        {
+            // Only one of the items are null. Null items are considered lower than items with value.
+            if (is_null ^ other.is_null)
+                return is_null;
+            else
+                return (is_null && other.is_null) || (value < other.value);
         }
 
         std::string value;
