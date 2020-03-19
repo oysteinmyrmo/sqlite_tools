@@ -1881,15 +1881,13 @@ namespace SQLT
     }
 
     /**
-     * Update rows using a custom SQLite query.
+     * Execute a custom SQLite query.
      *
-     * @param db The sqlite3 instance to execute the update query on.
-     * @param query The SQLite update query to perform. The query is expected to be an UPDATE query (i.e. no results are returned)..
-     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
-     *
-     * @see SQLT::seupdate(const std::string& query)
+     * @param db The sqlite3 instance to execute the query on.
+     * @param query The SQLite query to perform. No results are returned
+     * @return The SQLite error code. Will be SQLITE_OK if the query was executed successfully.
      */
-    inline int update(sqlite3 *db, const std::string& query)
+    inline int query(sqlite3 *db, const std::string& query)
     {
         int result = SQLITE_ERROR;
 
@@ -1913,13 +1911,11 @@ namespace SQLT
      * Update rows using a custom SQLite query.
      *
      * @tparam SQLT_DB The database to select from, defined by SQLT_DATABASE, SQLT_DATABASE_WITH_NAME or SQLT_DATABASE_WITH_NAME_AND_PATH.
-     * @param query The SQLite update query to perform. The query is expected to be an UPDATE query (i.e. no results are returned)..
-     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully selected.
-     *
-     * @see SQLT::update(sqlite3 *db, const std::string& query)
+     * @param query The SQLite query to perform. No results are returned.
+     * @return The SQLite error code. Will be SQLITE_OK if the query was executed successfully.
      */
     template<typename SQLT_DB>
-    inline int update(const std::string& query)
+    inline int query(const std::string& query)
     {
         int result;
         sqlite3 *db;
@@ -1932,7 +1928,7 @@ namespace SQLT
             return result;
         }
 
-        result = SQLT::update(db, query);
+        result = SQLT::query(db, query);
 
         if (result != SQLITE_OK)
         {
