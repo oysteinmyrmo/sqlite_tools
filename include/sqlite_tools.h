@@ -998,6 +998,16 @@ namespace SQLT
         }
 
         template<typename SQLT_TABLE>
+        inline std::string createDeleteAllPreparedStatement()
+        {
+            std::string query = "DELETE FROM ";
+            auto tableName = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_table_name();
+            query += tableName.toString();
+            query += ";";
+            return query;
+        }
+
+        template<typename SQLT_TABLE>
         inline size_t columnCount()
         {
             auto columns = SQLT_TABLE::template SQLTBase<SQLT_TABLE>::sqlt_static_column_info();
@@ -1937,6 +1947,35 @@ namespace SQLT
         }
 
         result = sqlite3_close(db);
+        return result;
+    }
+
+    /**
+     * Delete all data in a table.
+     *
+     * @tparam SQLT_TABLE An SQLT table struct defined by SQLT_TABLE or SQLT_TABLE_WITH_NAME.
+     * @param db The sqlite3 instance to delete data in.
+     * @return The SQLite error code. Will be SQLITE_OK if the rows were successfully inserted.
+     */
+    template<typename SQLT_TABLE>
+    inline int deleteAll(sqlite3 *db)
+    {
+        int result = SQLITE_ERROR;
+        sqlite3_stmt *stmt;
+        const std::string preparedStatement = SQLT::Internal::createDeleteAllPreparedStatement<SQLT_TABLE>();
+
+        result = sqlite3_prepare_v2(db, preparedStatement.c_str(), -1, &stmt, NULL);
+        if (result != SQLITE_OK)
+            return result;
+
+        result = sqlite3_step(stmt);
+        if (result != SQLITE_DONE)
+        {
+            sqlite3_finalize(stmt);
+            return result;
+        }
+
+        result = sqlite3_finalize(stmt);
         return result;
     }
 
