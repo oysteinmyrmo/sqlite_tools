@@ -2152,7 +2152,7 @@ namespace SQLT
     template<typename SQLT_DB>
     inline int begin(sqlite3 *db)
     {
-		return sqlite3_exec(db, "BEGIN", 0, 0, 0);
+        return sqlite3_exec(db, "BEGIN", 0, 0, 0);
     }
 
     /**
