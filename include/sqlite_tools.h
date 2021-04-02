@@ -1840,7 +1840,7 @@ namespace SQLT
             }
             else
             {
-                result = sqlite3_finalize(stmt);
+                sqlite3_finalize(stmt);
                 return result;
             }
 
